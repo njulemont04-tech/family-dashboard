@@ -1,52 +1,73 @@
 {% extends "base.html" %} {% block title %}Lists - {{ super() }}{% endblock %}
 {% block content %}
 <div class="list-container">
-  <form action="/create_list" method="POST" class="create-list-form">
+  <form
+    action="{{ url_for('create_list') }}"
+    method="POST"
+    class="create-list-form"
+  >
     <input
       type="text"
       name="new_list_name"
       placeholder="Enter new list name..."
       autocomplete="off"
+      required
     />
     <button type="submit">Create New List</button>
   </form>
 </div>
 
-{% for list_name, items in data.items() %}
+<!-- The main variable is now 'lists' instead of 'data' -->
+{% for list in lists %}
 <div class="list-container">
   <div class="list-header">
-    <h2>{{ list_name }}</h2>
-    <form action="/delete_list" method="POST">
-      <input type="hidden" name="list_to_delete" value="{{ list_name }}" />
+    <!-- We now access properties like 'list.name' -->
+    <h2>{{ list.name }}</h2>
+    <form action="{{ url_for('delete_list') }}" method="POST">
+      <!-- We pass the unique ID of the list -->
+      <input type="hidden" name="list_to_delete" value="{{ list.id }}" />
       <button type="submit" class="delete-list-btn">Delete List</button>
     </form>
   </div>
 
-  <form action="/add" method="POST">
-    <input type="hidden" name="list_name" value="{{ list_name }}" />
+  <form action="{{ url_for('add_item') }}" method="POST">
+    <!-- We pass the unique ID of the list this item belongs to -->
+    <input type="hidden" name="list_id" value="{{ list.id }}" />
     <input
       type="text"
       name="item"
       placeholder="Add a new item..."
       autocomplete="off"
+      required
     />
     <button type="submit">Add</button>
   </form>
 
   <ul>
-    {% for item in items %}
+    <!-- We loop through 'list.items', which comes from the database relationship -->
+    {% for item in list.items %}
     <li class="{{ 'done' if item.done }}">
-      <form action="/toggle" method="POST" class="inline-form">
-        <input type="hidden" name="list_name" value="{{ list_name }}" />
-        <input type="hidden" name="item_to_toggle" value="{{ item.text }}" />
+      <form
+        action="{{ url_for('toggle_done') }}"
+        method="POST"
+        class="inline-form"
+      >
+        <!-- We pass the item's unique ID -->
+        <input type="hidden" name="item_to_toggle" value="{{ item.id }}" />
         <button type="submit" class="checkbox-btn">
           {{ '☑' if item.done else '☐' }}
         </button>
       </form>
+
       <span>{{ item.text }}</span>
-      <form action="/delete" method="POST" class="inline-form">
-        <input type="hidden" name="list_name" value="{{ list_name }}" />
-        <input type="hidden" name="item_to_delete" value="{{ item.text }}" />
+
+      <form
+        action="{{ url_for('delete_item') }}"
+        method="POST"
+        class="inline-form"
+      >
+        <!-- We pass the item's unique ID -->
+        <input type="hidden" name="item_to_delete" value="{{ item.id }}" />
         <button type="submit">Delete</button>
       </form>
     </li>

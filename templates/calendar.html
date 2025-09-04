@@ -20,12 +20,12 @@
     {% for event in events %}
     <div class="event-item">
       <div class="event-date">
-        <!-- Display the pre-formatted date from our Python code -->
-        {{ event.formatted_date }}
+        <!-- Format the date object directly in the template -->
+        {{ event.date.strftime('%a, %b %d') }}
       </div>
       <div class="event-details">
-        <!-- Display the pre-formatted time -->
-        <span class="event-time">{{ event.formatted_time }}</span>
+        <!-- Format the time object directly in the template -->
+        <span class="event-time">{{ event.time.strftime('%I:%M %p') }}</span>
         <span class="event-title">{{ event.title }}</span>
       </div>
       <form
@@ -33,9 +33,8 @@
         method="POST"
         class="delete-event-form"
       >
-        <input type="hidden" name="event_title" value="{{ event.title }}" />
-        <input type="hidden" name="event_date" value="{{ event.date }}" />
-        <input type="hidden" name="event_time" value="{{ event.time }}" />
+        <!-- We now pass the event's unique ID -->
+        <input type="hidden" name="event_id" value="{{ event.id }}" />
         <button type="submit" class="delete-event-btn">✖</button>
       </form>
     </div>
