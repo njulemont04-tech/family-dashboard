@@ -1,0 +1,47 @@
+{% extends "base.html" %} {% block title %}Calendar - {{ super() }}{% endblock
+%} {% block content %}
+<div class="list-container">
+  <h2>Add a New Event</h2>
+  <form
+    action="{{ url_for('add_event') }}"
+    method="POST"
+    class="add-event-form"
+  >
+    <input type="text" name="title" placeholder="Event Title" required />
+    <input type="date" name="date" required />
+    <input type="time" name="time" required />
+    <button type="submit">Add Event</button>
+  </form>
+</div>
+
+<div class="list-container">
+  <h2>Upcoming Events</h2>
+  <div class="event-list">
+    {% for event in events %}
+    <div class="event-item">
+      <div class="event-date">
+        <!-- Display the pre-formatted date from our Python code -->
+        {{ event.formatted_date }}
+      </div>
+      <div class="event-details">
+        <!-- Display the pre-formatted time -->
+        <span class="event-time">{{ event.formatted_time }}</span>
+        <span class="event-title">{{ event.title }}</span>
+      </div>
+      <form
+        action="{{ url_for('delete_event') }}"
+        method="POST"
+        class="delete-event-form"
+      >
+        <input type="hidden" name="event_title" value="{{ event.title }}" />
+        <input type="hidden" name="event_date" value="{{ event.date }}" />
+        <input type="hidden" name="event_time" value="{{ event.time }}" />
+        <button type="submit" class="delete-event-btn">✖</button>
+      </form>
+    </div>
+    {% else %}
+    <p>You have no upcoming events.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

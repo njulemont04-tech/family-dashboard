@@ -1,0 +1,60 @@
+{% extends "base.html" %} {% block title %}Lists - {{ super() }}{% endblock %}
+{% block content %}
+<div class="list-container">
+  <form action="/create_list" method="POST" class="create-list-form">
+    <input
+      type="text"
+      name="new_list_name"
+      placeholder="Enter new list name..."
+      autocomplete="off"
+    />
+    <button type="submit">Create New List</button>
+  </form>
+</div>
+
+{% for list_name, items in data.items() %}
+<div class="list-container">
+  <div class="list-header">
+    <h2>{{ list_name }}</h2>
+    <form action="/delete_list" method="POST">
+      <input type="hidden" name="list_to_delete" value="{{ list_name }}" />
+      <button type="submit" class="delete-list-btn">Delete List</button>
+    </form>
+  </div>
+
+  <form action="/add" method="POST">
+    <input type="hidden" name="list_name" value="{{ list_name }}" />
+    <input
+      type="text"
+      name="item"
+      placeholder="Add a new item..."
+      autocomplete="off"
+    />
+    <button type="submit">Add</button>
+  </form>
+
+  <ul>
+    {% for item in items %}
+    <li class="{{ 'done' if item.done }}">
+      <form action="/toggle" method="POST" class="inline-form">
+        <input type="hidden" name="list_name" value="{{ list_name }}" />
+        <input type="hidden" name="item_to_toggle" value="{{ item.text }}" />
+        <button type="submit" class="checkbox-btn">
+          {{ '☑' if item.done else '☐' }}
+        </button>
+      </form>
+      <span>{{ item.text }}</span>
+      <form action="/delete" method="POST" class="inline-form">
+        <input type="hidden" name="list_name" value="{{ list_name }}" />
+        <input type="hidden" name="item_to_delete" value="{{ item.text }}" />
+        <button type="submit">Delete</button>
+      </form>
+    </li>
+    {% else %}
+    <li>This list is empty.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% else %}
+<p>You don't have any lists yet. Create one!</p>
+{% endfor %} {% endblock %}

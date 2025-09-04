@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- The title will be customizable by other pages -->
+    <title>{% block title %}Family Dashboard{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Only show the header if a user is logged in -->
+    {% if current_user.is_authenticated %}
+    <div class="header">
+      <h1>Family Dashboard</h1>
+      <nav>
+        <a href="{{ url_for('home') }}">Lists</a>
+        <a href="{{ url_for('calendar') }}">Calendar</a>
+      </nav>
+      <div class="user-info">
+        <span>Welcome, {{ current_user.username }}!</span>
+        <a href="{{ url_for('logout') }}" class="logout-btn">Logout</a>
+      </div>
+    </div>
+    {% endif %}
+
+    <main class="content">
+      <!-- This is where the content of other pages will go -->
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>
