@@ -1,0 +1,101 @@
+{% extends "base.html" %} {% block title %}Meal Planner - {{ super() }}{%
+endblock %} {% block content %}
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <h5 class="card-title">Add/Update a Meal</h5>
+    <form
+      action="{{ url_for('add_meal') }}"
+      method="POST"
+      class="add-meal-form row g-3 align-items-center"
+    >
+      <div class="col-sm-3">
+        <label for="day-select" class="visually-hidden">Day</label>
+        <select name="day" id="day-select" class="form-select" required>
+          {% for day in days_of_week %}
+          <option value="{{ day }}">{{ day }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <label for="meal-type-select" class="visually-hidden">Meal Type</label>
+        <select
+          name="meal_type"
+          id="meal-type-select"
+          class="form-select"
+          required
+        >
+          {% for type in meal_types %}
+          <option value="{{ type }}">{{ type }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-4">
+        <label for="meal-description" class="visually-hidden"
+          >Description</label
+        >
+        <input
+          type="text"
+          name="description"
+          id="meal-description"
+          class="form-control"
+          placeholder="Meal description..."
+          required
+          autocomplete="off"
+        />
+      </div>
+      <div class="col-sm-2">
+        <button type="submit" class="btn btn-primary w-100">Set Meal</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-header">
+    <h5 class="mb-0">Weekly Meal Planner</h5>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-bordered text-center mb-0 meal-table">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 10%">Day</th>
+            {% for meal_type in meal_types %}
+            <th style="width: 30%">{{ meal_type }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for day in days_of_week %}
+          <tr>
+            <td class="fw-bold align-middle">{{ day }}</td>
+            {% for meal_type in meal_types %}
+            <td
+              data-day="{{ day }}"
+              data-meal-type="{{ meal_type }}"
+              class="align-middle"
+            >
+              {% set meal = meal_plan[day][meal_type] %} {% if meal %}
+              <div class="meal-entry">
+                <span>{{ meal.description }}</span>
+                <form action="{{ url_for('delete_meal') }}" method="POST">
+                  <input type="hidden" name="meal_id" value="{{ meal.id }}" />
+                  <button
+                    type="submit"
+                    class="btn-close delete-meal-btn"
+                  ></button>
+                </form>
+              </div>
+              {% else %}
+              <span class="no-meal">-</span>
+              {% endif %}
+            </td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,81 +1,269 @@
-{% extends "base.html" %} {% block title %}Lists - {{ super() }}{% endblock %}
-{% block content %}
-<div class="list-container">
-  <form
-    action="{{ url_for('create_list') }}"
-    method="POST"
-    class="create-list-form"
-  >
-    <input
-      type="text"
-      name="new_list_name"
-      placeholder="Enter new list name..."
-      autocomplete="off"
-      required
-    />
-    <button type="submit">Create New List</button>
-  </form>
+{% extends 'base.html' %} {% block title %}My Lists{% endblock %} {% block
+content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="mb-0">Your Lists</h1>
 </div>
 
-<!-- The main variable is now 'lists' instead of 'data' -->
-{% for list in lists %}
-<div class="list-container">
-  <div class="list-header">
-    <!-- We now access properties like 'list.name' -->
-    <h2>{{ list.name }}</h2>
-    <form action="{{ url_for('delete_list') }}" method="POST">
-      <!-- We pass the unique ID of the list -->
-      <input type="hidden" name="list_to_delete" value="{{ list.id }}" />
-      <button type="submit" class="delete-list-btn">Delete List</button>
-    </form>
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %} {% if messages
+%} {% for category, message in messages %}
+<div
+  class="alert alert-{{ category }} alert-dismissible fade show"
+  role="alert"
+>
+  {{ message }}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{% endfor %} {% endif %} {% endwith %}
+
+<div class="row">
+  <!-- Left Column: Owned and Shared Lists -->
+  <div class="col-md-8">
+    <!-- Owned Lists -->
+    {% if owned_lists %}
+    <h3 class="mb-3">Owned by You</h3>
+    {% for list in owned_lists %}
+    <div class="card mb-4">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5 class="mb-0">{{ list.name }}</h5>
+        <form
+          action="{{ url_for('delete_list') }}"
+          method="POST"
+          class="d-inline"
+          onsubmit="return confirm('Are you sure you want to delete this list and all its items?');"
+        >
+          <input type="hidden" name="list_to_delete" value="{{ list.id }}" />
+          <button type="submit" class="btn btn-sm btn-outline-danger">
+            Delete List
+          </button>
+        </form>
+      </div>
+      <div class="card-body">
+        <!-- ADD "data-list-id" and an "id" HERE -->
+        <ul
+          class="list-group"
+          id="items-list-{{ list.id }}"
+          data-list-id="{{ list.id }}"
+        >
+          {% for item in list.items %}
+          <!-- ADD "data-item-id" to the LI element -->
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center {% if item.done %}done{% endif %}"
+            id="item-{{ item.id }}"
+            data-item-id="{{ item.id }}"
+          >
+            <span class="item-text">{{ item.text }}</span>
+            <div>
+              <!-- ADD "data-item-id" TO THE FORM -->
+              <form
+                action="{{ url_for('toggle_done') }}"
+                method="POST"
+                class="d-inline"
+                data-item-id="{{ item.id }}"
+              >
+                <input
+                  type="hidden"
+                  name="item_to_toggle"
+                  value="{{ item.id }}"
+                />
+                <button type="submit" class="btn btn-sm btn-success me-1">
+                  ✓
+                </button>
+              </form>
+              <!-- ADD "data-item-id" TO THE FORM -->
+              <form
+                action="{{ url_for('delete_item') }}"
+                method="POST"
+                class="d-inline"
+                data-item-id="{{ item.id }}"
+              >
+                <input
+                  type="hidden"
+                  name="item_to_delete"
+                  value="{{ item.id }}"
+                />
+                <button type="submit" class="btn btn-sm btn-danger">X</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="card-footer">
+        <!-- ADD THE CLASS "item-add-form" HERE -->
+        <form
+          action="{{ url_for('add_item') }}"
+          method="POST"
+          class="d-flex item-add-form"
+        >
+          <input type="hidden" name="list_id" value="{{ list.id }}" />
+          <input
+            type="text"
+            name="item"
+            class="form-control me-2"
+            placeholder="New item..."
+            required
+          />
+          <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %} {% endif %}
+
+    <!-- Shared Lists -->
+    {% if shared_lists %}
+    <h3 class="mb-3">Shared with You</h3>
+    {% for list in shared_lists %}
+    <!-- This section is almost identical to the owned lists section -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5 class="mb-0">
+          {{ list.name }}
+          <span class="text-muted fs-6"
+            >(Owner: {{ list.owner.username }})</span
+          >
+        </h5>
+      </div>
+      <div class="card-body">
+        <!-- ADD "data-list-id" and an "id" HERE -->
+        <ul
+          class="list-group"
+          id="items-list-{{ list.id }}"
+          data-list-id="{{ list.id }}"
+        >
+          {% for item in list.items %}
+          <!-- ADD "data-item-id" to the LI element -->
+          <li
+            class="list-group-item d-flex justify-content-between align-items-center {% if item.done %}done{% endif %}"
+            id="item-{{ item.id }}"
+            data-item-id="{{ item.id }}"
+          >
+            <span class="item-text">{{ item.text }}</span>
+            <div>
+              <!-- ADD "data-item-id" TO THE FORM -->
+              <form
+                action="{{ url_for('toggle_done') }}"
+                method="POST"
+                class="d-inline"
+                data-item-id="{{ item.id }}"
+              >
+                <input
+                  type="hidden"
+                  name="item_to_toggle"
+                  value="{{ item.id }}"
+                />
+                <button type="submit" class="btn btn-sm btn-success me-1">
+                  ✓
+                </button>
+              </form>
+              <!-- ADD "data-item-id" TO THE FORM -->
+              <form
+                action="{{ url_for('delete_item') }}"
+                method="POST"
+                class="d-inline"
+                data-item-id="{{ item.id }}"
+              >
+                <input
+                  type="hidden"
+                  name="item_to_delete"
+                  value="{{ item.id }}"
+                />
+                <button type="submit" class="btn btn-sm btn-danger">X</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="card-footer">
+        <!-- ADD THE CLASS "item-add-form" HERE -->
+        <form
+          action="{{ url_for('add_item') }}"
+          method="POST"
+          class="d-flex item-add-form"
+        >
+          <input type="hidden" name="list_id" value="{{ list.id }}" />
+          <input
+            type="text"
+            name="item"
+            class="form-control me-2"
+            placeholder="New item..."
+            required
+          />
+          <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %} {% endif %} {% if not owned_lists and not shared_lists %}
+    <div class="alert alert-info">
+      You don't have any lists yet. Create one to get started!
+    </div>
+    {% endif %}
   </div>
 
-  <form action="{{ url_for('add_item') }}" method="POST">
-    <!-- We pass the unique ID of the list this item belongs to -->
-    <input type="hidden" name="list_id" value="{{ list.id }}" />
-    <input
-      type="text"
-      name="item"
-      placeholder="Add a new item..."
-      autocomplete="off"
-      required
-    />
-    <button type="submit">Add</button>
-  </form>
-
-  <ul>
-    <!-- We loop through 'list.items', which comes from the database relationship -->
-    {% for item in list.items %}
-    <li class="{{ 'done' if item.done }}">
-      <form
-        action="{{ url_for('toggle_done') }}"
-        method="POST"
-        class="inline-form"
-      >
-        <!-- We pass the item's unique ID -->
-        <input type="hidden" name="item_to_toggle" value="{{ item.id }}" />
-        <button type="submit" class="checkbox-btn">
-          {{ '☑' if item.done else '☐' }}
-        </button>
-      </form>
-
-      <span>{{ item.text }}</span>
-
-      <form
-        action="{{ url_for('delete_item') }}"
-        method="POST"
-        class="inline-form"
-      >
-        <!-- We pass the item's unique ID -->
-        <input type="hidden" name="item_to_delete" value="{{ item.id }}" />
-        <button type="submit">Delete</button>
-      </form>
-    </li>
-    {% else %}
-    <li>This list is empty.</li>
-    {% endfor %}
-  </ul>
+  <!-- Right Column: Create and Share -->
+  <div class="col-md-4">
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Create a New List</h5>
+        <form action="{{ url_for('create_list') }}" method="POST">
+          <div class="mb-3">
+            <input
+              type="text"
+              name="new_list_name"
+              class="form-control"
+              placeholder="List Name"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-success w-100">
+            Create List
+          </button>
+        </form>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Share a List</h5>
+        <form action="{{ url_for('share_list') }}" method="POST">
+          <div class="mb-3">
+            <label for="list_to_share" class="form-label">Select List:</label>
+            <select
+              name="list_id"
+              id="list_to_share"
+              class="form-select"
+              required
+            >
+              <option value="" disabled selected>-- Your Lists --</option>
+              {% for list in owned_lists %}
+              <option value="{{ list.id }}">{{ list.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="share_username" class="form-label"
+              >Username to share with:</label
+            >
+            <input
+              type="text"
+              name="username"
+              id="share_username"
+              class="form-control"
+              placeholder="e.g., family_member"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-info w-100">Share</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
-{% else %}
-<p>You don't have any lists yet. Create one!</p>
-{% endfor %} {% endblock %}
+{% endblock %}

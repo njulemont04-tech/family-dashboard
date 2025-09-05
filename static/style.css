@@ -1,301 +1,38 @@
-/* Apply styles to the entire page */
+/* Custom overrides and additions for Bootstrap */
+
+/* Make the main container have a bit of space at the top */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif;
-  background-color: #f4f4f9;
-  color: #333;
-  max-width: 600px; /* Limit the width for better readability on large screens */
-  margin: 20px auto; /* Center the content horizontally */
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
-  background-color: #ffffff;
+  padding-top: 20px;
+  background-color: #f8f9fa; /* A light gray background */
 }
 
-/* Style for the main heading */
-h1 {
-  color: #4a4a4a;
-  text-align: center;
-}
-
-/* Style for the form to make it look clean */
-form {
-  display: flex; /* Arrange input and button side-by-side */
-  margin-bottom: 20px;
-}
-
-/* Style for the text input box */
-input[type="text"] {
-  flex-grow: 1; /* Allow the input to take up available space */
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-/* Style for buttons */
-button {
-  padding: 10px 15px;
-  border: none;
-  background-color: #007bff; /* A nice blue color */
-  color: white;
-  border-radius: 4px;
-  cursor: pointer; /* Show a hand cursor on hover */
-  font-size: 16px;
-  margin-left: 10px; /* Add some space between the input and button */
-}
-
-/* Style for the delete button specifically */
-form[action="/delete"] button {
-  background-color: #dc3545; /* A red color for delete actions */
-  padding: 5px 10px;
-  font-size: 12px;
-}
-
-/* Style for the list itself */
-ul {
-  list-style-type: none; /* Remove the default bullet points */
-  padding: 0;
-}
-
-/* Style for each item in the list */
-li {
-  display: flex; /* Arrange item text and form side-by-side */
-  justify-content: space-between; /* Push the item and button to opposite ends */
-  align-items: center; /* Vertically align them in the middle */
-  padding: 10px;
-  border-bottom: 1px solid #eee; /* Add a line between items */
-}
-
-/* Prevent the line from appearing on the last item */
-li:last-child {
-  border-bottom: none;
-}
-
-/* Style for the container of each individual list */
-.list-container {
-  background-color: #fdfdff;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
-}
-
-/* New styles for the list header */
-.list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.list-header h2 {
-  margin: 0; /* Remove default margin from the heading */
-}
-
-.delete-list-btn {
-  background-color: #6c757d; /* A more subtle gray color */
-  font-size: 12px;
-  padding: 5px 10px;
-}
-
-/* Style for items that are marked as done */
-.done span {
+/* Style for items marked as done */
+.done {
   text-decoration: line-through;
-  color: #888;
+  color: #6c757d; /* Bootstrap's secondary text color */
 }
 
-/* Make the new forms display correctly */
-.inline-form {
-  display: inline;
+/* Tweak for the header avatar */
+.header-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
-/* Style the checkbox button to look like text */
+/* Ensure our note cards have the sticky-note color */
+.note-card {
+  background-color: #fffbe5 !important; /* Use !important to override Bootstrap's card background */
+  border: 1px solid #eee;
+}
+
+/* Make our checkbox-like button look good */
 .checkbox-btn {
   background: none;
   border: none;
-  color: #007bff;
   cursor: pointer;
-  font-size: 20px;
-  padding: 0 10px 0 0;
-  margin: 0;
-}
-
-/* Styles for Login/Register pages */
-.auth-container {
-  max-width: 400px;
-  margin: 50px auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.auth-container h1 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.auth-container form input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  box-sizing: border-box; /* Important for padding and width */
-}
-
-.auth-container form button {
-  width: 100%;
-  margin-left: 0;
-}
-
-.auth-container p {
-  text-align: center;
-  margin-top: 20px;
-}
-
-/* Styles for Flashed Messages */
-.alert {
-  padding: 10px;
-  margin-bottom: 20px;
-  border-radius: 4px;
-  text-align: center;
-}
-.alert-success {
-  background-color: #d4edda;
-  color: #155724;
-}
-.alert-danger {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-.alert-warning {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-/* Styles for the new header on the main page */
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 10px;
-}
-
-.header h1 {
-  margin: 0;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-}
-
-.logout-btn {
-  text-decoration: none;
-  color: white;
-  background-color: #6c757d;
-  padding: 8px 12px;
-  border-radius: 4px;
-  margin-left: 15px;
-  font-size: 14px;
-}
-
-/* Styles for the new navigation */
-nav {
-  display: flex;
-  gap: 15px;
-}
-
-nav a {
-  text-decoration: none;
-  color: #007bff;
-  font-size: 16px;
-  padding: 5px 0;
-  border-bottom: 2px solid transparent;
-}
-
-nav a:hover {
-  border-bottom: 2px solid #007bff;
-}
-
-/* Styles for the Calendar Page */
-.event-list {
-  margin-top: 20px;
-}
-
-.event-item {
-  display: flex;
-  align-items: center;
-  background-color: #fdfdff;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  padding: 15px;
-  margin-bottom: 10px;
-}
-
-.event-date {
-  font-size: 16px;
-  font-weight: bold;
-  color: #007bff;
-  margin-right: 20px;
-  min-width: 100px; /* Give it a fixed width */
-}
-
-.event-details {
-  display: flex;
-  flex-direction: column;
-}
-
-.event-time {
-  font-size: 14px;
-  color: #6c757d;
-}
-
-.event-title {
-  font-size: 18px;
-  color: #333;
-  font-weight: 500;
-}
-
-/* Calendar form styles */
-.add-event-form {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.add-event-form input {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.add-event-form input[type="text"] {
-  flex-grow: 1;
-}
-
-/* Make the event item a container for the delete button */
-.event-item {
-  position: relative;
-}
-
-.delete-event-form {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-}
-
-.delete-event-btn {
-  background: none;
-  border: none;
-  color: #dc3545;
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0;
+  font-size: 1.2rem;
+  padding: 0 0.5rem 0 0;
   line-height: 1;
+  color: #0d6efd; /* Bootstrap's primary blue */
 }

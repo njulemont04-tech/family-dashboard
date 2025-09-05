@@ -1,0 +1,42 @@
+{% extends "base.html" %} {% block title %}My Profile - {{ super() }}{% endblock
+%} {% block content %}
+<div class="list-container">
+  <h2>My Profile</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %} {% if
+  messages %} {% for category, message in messages %}
+  <div class="alert alert-{{ category }}">{{ message }}</div>
+  {% endfor %} {% endif %} {% endwith %}
+
+  <div class="profile-details">
+    <img
+      src="{{ current_user.avatar_url }}"
+      alt="Your Avatar"
+      class="profile-avatar"
+    />
+    <div class="profile-info">
+      <h3>{{ current_user.username }}</h3>
+      <p>Update your avatar below.</p>
+    </div>
+  </div>
+
+  <hr />
+
+  <form
+    action="{{ url_for('upload_avatar') }}"
+    method="POST"
+    enctype="multipart/form-data"
+    class="upload-form"
+  >
+    <label for="avatar">Choose a new avatar:</label>
+    <input
+      type="file"
+      id="avatar"
+      name="avatar"
+      accept="image/png, image/jpeg, image/gif"
+      required
+    />
+    <button type="submit">Upload</button>
+  </form>
+</div>
+{% endblock %}

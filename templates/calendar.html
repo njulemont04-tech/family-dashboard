@@ -1,46 +1,74 @@
 {% extends "base.html" %} {% block title %}Calendar - {{ super() }}{% endblock
 %} {% block content %}
-<div class="list-container">
-  <h2>Add a New Event</h2>
-  <form
-    action="{{ url_for('add_event') }}"
-    method="POST"
-    class="add-event-form"
-  >
-    <input type="text" name="title" placeholder="Event Title" required />
-    <input type="date" name="date" required />
-    <input type="time" name="time" required />
-    <button type="submit">Add Event</button>
-  </form>
-</div>
-
-<div class="list-container">
-  <h2>Upcoming Events</h2>
-  <div class="event-list">
-    {% for event in events %}
-    <div class="event-item">
-      <div class="event-date">
-        <!-- Format the date object directly in the template -->
-        {{ event.date.strftime('%a, %b %d') }}
+<div class="row">
+  <div class="col-lg-4">
+    <div class="card shadow-sm mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Add a New Event</h5>
+        <form
+          action="{{ url_for('add_event') }}"
+          method="POST"
+          class="add-event-form d-flex flex-column gap-2"
+        >
+          <input
+            type="text"
+            name="title"
+            class="form-control"
+            placeholder="Event Title"
+            required
+          />
+          <input type="date" name="date" class="form-control" required />
+          <input type="time" name="time" class="form-control" required />
+          <button type="submit" class="btn btn-primary mt-2">Add Event</button>
+        </form>
       </div>
-      <div class="event-details">
-        <!-- Format the time object directly in the template -->
-        <span class="event-time">{{ event.time.strftime('%I:%M %p') }}</span>
-        <span class="event-title">{{ event.title }}</span>
-      </div>
-      <form
-        action="{{ url_for('delete_event') }}"
-        method="POST"
-        class="delete-event-form"
-      >
-        <!-- We now pass the event's unique ID -->
-        <input type="hidden" name="event_id" value="{{ event.id }}" />
-        <button type="submit" class="delete-event-btn">✖</button>
-      </form>
     </div>
-    {% else %}
-    <p>You have no upcoming events.</p>
-    {% endfor %}
+  </div>
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Upcoming Events</h5>
+        <div class="list-group event-list">
+          {% for event in events %}
+          <div
+            class="list-group-item d-flex justify-content-between align-items-center"
+          >
+            <div class="d-flex align-items-center">
+              <div
+                class="event-date me-3 text-center p-2 bg-light rounded"
+                style="min-width: 65px"
+              >
+                <div class="fw-bold text-primary text-uppercase">
+                  {{ event.date.strftime('%b') }}
+                </div>
+                <div class="fs-4">{{ event.date.strftime('%d') }}</div>
+              </div>
+              <div>
+                <div class="fw-bold">{{ event.title }}</div>
+                <small class="text-muted"
+                  >{{ event.time.strftime('%I:%M %p') }}</small
+                >
+              </div>
+            </div>
+            <form
+              action="{{ url_for('delete_event') }}"
+              method="POST"
+              class="delete-event-form"
+            >
+              <input type="hidden" name="event_id" value="{{ event.id }}" />
+              <button
+                type="submit"
+                class="btn-close"
+                aria-label="Delete"
+              ></button>
+            </form>
+          </div>
+          {% else %}
+          <p class="text-muted p-3">You have no upcoming events.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}
