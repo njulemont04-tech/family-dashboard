@@ -1,11 +1,9 @@
 // This function will run when the entire HTML document has been loaded.
 document.addEventListener("DOMContentLoaded", () => {
   // --- START: WEBSOCKET SETUP ---
-  // Connect to the WebSocket server
   const socket = io();
 
-  // A function to create the HTML for a new list item
-  // This is crucial for creating items that look and act like the server-rendered ones
+  // Helper function to create the HTML for a new list item
   function createItemElement(listId, item) {
     const li = document.createElement("li");
     li.className = `list-group-item d-flex justify-content-between align-items-center ${
@@ -42,6 +40,40 @@ document.addEventListener("DOMContentLoaded", () => {
     return li;
   }
 
+  // Helper function to create the HTML for a new bulletin board note
+  function createNoteElement(note) {
+    const noteCard = document.createElement("div");
+    noteCard.id = `note-${note.id}`;
+    noteCard.className = "card mb-3";
+
+    let deleteFormHTML = "";
+    // The global 'currentUserId' variable is set in the bulletin_board.html template
+    if (
+      typeof currentUserId !== "undefined" &&
+      currentUserId === note.author_id
+    ) {
+      deleteFormHTML = `
+            <form action="/delete_note" method="POST" class="note-delete-form" data-note-id="${note.id}">
+                <input type="hidden" name="note_id" value="${note.id}">
+                <button type="submit" class="btn-close" aria-label="Delete"></button>
+            </form>
+        `;
+    }
+
+    noteCard.innerHTML = `
+      <div class="card-body d-flex justify-content-between">
+        <div>
+          <p class="card-text fs-5">${note.content}</p>
+          <p class="card-subtitle text-muted" style="font-size: 0.8rem;">
+            Posted by <strong>${note.author}</strong> on ${note.timestamp}
+          </p>
+        </div>
+        ${deleteFormHTML}
+      </div>
+    `;
+    return noteCard;
+  }
+
   // When the connection is established
   socket.on("connect", () => {
     console.log("Connected to server!");
@@ -53,23 +85,24 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Listen for the 'item_added' event from the server
+  // Listen for 'item_added' event for lists
   socket.on("item_added", (data) => {
     console.log("Item added event received:", data);
-
-    // Check if the item element already exists to avoid duplicates from the acting client
     if (!document.getElementById(`item-${data.item.id}`)) {
       const listElement = document.getElementById(`items-list-${data.list_id}`);
       if (listElement) {
         const newItemElement = createItemElement(data.list_id, data.item);
         listElement.appendChild(newItemElement);
-        // We need to re-attach event listeners to the new forms
+
+        // --- ADD THIS LINE ---
+        newItemElement.classList.add("item-flash");
+
         attachFormListeners(newItemElement);
       }
     }
   });
 
-  // Listen for the 'item_deleted' event
+  // Listen for 'item_deleted' event for lists
   socket.on("item_deleted", (data) => {
     console.log("Item deleted event received:", data);
     const itemElement = document.getElementById(`item-${data.item_id}`);
@@ -78,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Listen for the 'item_toggled' event
+  // Listen for 'item_toggled' event for lists
   socket.on("item_toggled", (data) => {
     console.log("Item toggled event received:", data);
     const itemElement = document.getElementById(`item-${data.item_id}`);
@@ -86,36 +119,49 @@ document.addEventListener("DOMContentLoaded", () => {
       itemElement.classList.toggle("done", data.done_status);
     }
   });
-  // --- END: WEBSOCKET SETUP ---
+
+  // --- START: NEW BULLETIN BOARD LISTENERS ---
+  socket.on("note_added", (data) => {
+    console.log("Note added event received:", data);
+    const notesList = document.getElementById("notes-list");
+    // Check if the element already exists to avoid duplicates for the acting user
+    if (notesList && !document.getElementById(`note-${data.note.id}`)) {
+      const newNoteElement = createNoteElement(data.note);
+      notesList.prepend(newNoteElement); // Add new notes to the top
+
+      // --- ADD THIS LINE ---
+      newNoteElement.classList.add("item-flash");
+
+      attachFormListeners(newNoteElement); // Attach listeners to the new delete form
+    }
+  });
+
+  socket.on("note_deleted", (data) => {
+    console.log("Note deleted event received:", data);
+    const noteElement = document.getElementById(`note-${data.note_id}`);
+    if (noteElement) {
+      noteElement.remove();
+    }
+  });
+  // --- END: NEW BULLETIN BOARD LISTENERS ---
 
   // --- START: AJAX-IFY ALL THE FORMS ---
-  // This function will be our universal form handler
   const handleFormSubmit = async (form, callback) => {
-    // Prevent the default browser form submission
     event.preventDefault();
-
     try {
       const formData = new FormData(form);
       const response = await fetch(form.action, {
         method: "POST",
         body: formData,
-        // This header is crucial for the backend to know it's an AJAX request
-        headers: {
-          "X-Requested-With": "XMLHttpRequest",
-        },
+        headers: { "X-Requested-With": "XMLHttpRequest" },
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data = await response.json();
-
       if (data.success) {
-        // If the request was successful, run the specific callback function
         callback(form, data);
       } else {
-        // Handle server-side validation errors (though we don't have any yet)
         console.error("Server reported an error:", data.message);
       }
     } catch (error) {
@@ -123,40 +169,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Callback for adding a list item
   const handleAddItem = (form, data) => {
     const listId = form.querySelector('[name="list_id"]').value;
     const listElement = document.getElementById(`items-list-${listId}`);
-
-    // Check if the element already exists (WebSocket might have added it)
     if (!document.getElementById(`item-${data.item.id}`)) {
       const newItemElement = createItemElement(listId, data.item);
       listElement.appendChild(newItemElement);
-      // Attach listeners to the new item's buttons
       attachFormListeners(newItemElement);
     }
-
-    form.reset(); // Clear the input field
+    form.reset();
   };
 
-  // Callback for deleting a list item
   const handleDeleteItem = (form, data) => {
     const itemId = form.dataset.itemId;
     document.getElementById(`item-${itemId}`).remove();
   };
 
-  // Callback for toggling a list item
   const handleToggleItem = (form, data) => {
     const itemId = form.dataset.itemId;
-    const itemElement = document.getElementById(`item-${itemId}`);
-    itemElement.classList.toggle("done", data.done_status);
+    document
+      .getElementById(`item-${itemId}`)
+      .classList.toggle("done", data.done_status);
   };
 
-  // Callback for adding an event to the calendar
   const handleAddEvent = (form, data) => {
     const eventList = document.querySelector(".list-group.calendar-events");
     const newEvent = data.event;
-
     const eventElement = document.createElement("li");
     eventElement.id = `event-${newEvent.id}`;
     eventElement.className =
@@ -172,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
           </form>
       `;
     eventList.appendChild(eventElement);
-    attachFormListeners(eventElement); // Re-attach listener to the new form
+    attachFormListeners(eventElement);
     form.reset();
   };
 
@@ -181,41 +219,25 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(`event-${eventId}`).remove();
   };
 
-  // Callback for meals
   const handleAddMeal = (form, data) => {
     const day = form.querySelector('[name="day"]').value;
     const mealType = form.querySelector('[name="meal_type"]').value;
     const cellId = `meal-${day}-${mealType}`;
     const cell = document.getElementById(cellId);
     const meal = data.meal;
-
     if (cell) {
-      // Create the inner div that holds the description and delete button
       const mealContent = document.createElement("div");
       mealContent.className = "meal-content";
       mealContent.id = `meal-content-${meal.id}`;
-
-      const descriptionSpan = document.createElement("span");
-      descriptionSpan.textContent = meal.description;
-
-      const deleteForm = document.createElement("form");
-      deleteForm.action = "/delete_meal";
-      deleteForm.method = "POST";
-      deleteForm.className = "meal-delete-form d-inline";
-      deleteForm.dataset.mealId = meal.id;
-      deleteForm.innerHTML = `
-          <input type="hidden" name="meal_id" value="${meal.id}">
-          <button type="submit" class="btn-close btn-sm" aria-label="Delete"></button>
+      mealContent.innerHTML = `
+          <span>${meal.description}</span>
+          <form action="/delete_meal" method="POST" class="meal-delete-form d-inline" data-meal-id="${meal.id}">
+            <input type="hidden" name="meal_id" value="${meal.id}">
+            <button type="submit" class="btn-close btn-sm" aria-label="Delete"></button>
+          </form>
         `;
-
-      mealContent.appendChild(descriptionSpan);
-      mealContent.appendChild(deleteForm);
-
-      // Clear previous content and add the new one
       cell.innerHTML = "";
       cell.appendChild(mealContent);
-
-      // Re-attach listeners to the new form
       attachFormListeners(cell);
     }
     form.reset();
@@ -225,40 +247,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const mealId = form.dataset.mealId;
     const mealContent = document.getElementById(`meal-content-${mealId}`);
     if (mealContent) {
-      mealContent.parentElement.innerHTML = ""; // Clear the table cell
+      mealContent.parentElement.innerHTML = "";
     }
   };
 
   // Callback for bulletin board notes
   const handleAddNote = (form, data) => {
     const notesList = document.getElementById("notes-list");
-    const newNote = data.note;
-
-    const noteCard = document.createElement("div");
-    noteCard.id = `note-${newNote.id}`;
-    noteCard.className = "card mb-3";
-
-    noteCard.innerHTML = `
-      <div class="card-body d-flex justify-content-between">
-        <div>
-          <p class="card-text">${newNote.content}</p>
-          <p class="card-subtitle text-muted" style="font-size: 0.8rem;">
-            Posted by <strong>${newNote.author}</strong> on ${newNote.timestamp}
-          </p>
-        </div>
-        <form action="/delete_note" method="POST" class="note-delete-form" data-note-id="${newNote.id}">
-          <input type="hidden" name="note_id" value="${newNote.id}">
-          <button type="submit" class="btn-close" aria-label="Delete"></button>
-        </form>
-      </div>
-    `;
-
-    // Insert the new note at the top of the list
-    notesList.prepend(noteCard);
-
-    // Re-attach listeners to the new form
-    attachFormListeners(noteCard);
-
+    // The WebSocket listener will handle adding the note for all users, including this one.
+    // We just need to make sure our own AJAX call doesn't *also* add it, causing a duplicate.
+    // The check inside the socket.on('note_added') listener already prevents this.
+    // So, we just reset the form.
+    if (notesList && !document.getElementById(`note-${data.note.id}`)) {
+      const newNoteElement = createNoteElement(data.note);
+      notesList.prepend(newNoteElement);
+      attachFormListeners(newNoteElement);
+    }
     form.reset();
   };
 
@@ -267,11 +271,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById(`note-${noteId}`).remove();
   };
 
-  // This function attaches the correct submit handler to each form
   const attachFormListeners = (parentElement) => {
-    // If no parentElement is given, default to the whole document
     parentElement = parentElement || document;
-
     parentElement
       .querySelectorAll(".item-add-form")
       .forEach((form) =>
@@ -304,7 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .querySelectorAll(".event-delete-form")
       .forEach((form) =>
         form.addEventListener("submit", (e) =>
-          handleFormSubmit(form, handleDeleteEvent)
+          handleFormListeners(form, handleDeleteEvent)
         )
       );
     parentElement

@@ -36,3 +36,22 @@ body {
   line-height: 1;
   color: #0d6efd; /* Bootstrap's primary blue */
 }
+
+/* --- NEW: Real-time update flash animation --- */
+
+/* This is the animation itself.
+   It starts with a light blue background, then fades back to transparent. */
+@keyframes flash {
+  from {
+    background-color: #cfe2ff; /* A light, pleasant Bootstrap blue */
+  }
+  to {
+    background-color: transparent;
+  }
+}
+
+/* This is the class we will add to our new elements with JavaScript.
+   It tells the element to run our 'flash' animation over 1.5 seconds. */
+.item-flash {
+  animation: flash 1.5s ease-out;
+}

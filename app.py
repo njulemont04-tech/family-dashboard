@@ -494,24 +494,27 @@ def bulletin_board():
 def add_note():
     content = request.form.get("content")
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
     if content:
         new_note = Note(content=content, author=current_user)
         db.session.add(new_note)
         db.session.commit()
+
+        # --- THIS IS THE PART THAT IS LIKELY MISSING ---
+        note_data = {
+            "id": new_note.id,
+            "content": new_note.content,
+            "author": new_note.author.username,
+            "timestamp": new_note.timestamp.strftime("%b %d, %Y at %I:%M %p"),
+            "author_id": new_note.author.id,
+        }
+        # Broadcast to everyone.
+        socketio.emit("note_added", {"note": note_data})
+        # --- END OF MISSING PART ---
+
         if is_ajax:
-            return jsonify(
-                {
-                    "success": True,
-                    "note": {
-                        "id": new_note.id,
-                        "content": new_note.content,
-                        "author": new_note.author.username,
-                        "timestamp": new_note.timestamp.strftime(
-                            "%b %d, %Y at %I:%M %p"
-                        ),
-                    },
-                }
-            )
+            return jsonify({"success": True, "note": note_data})
+
     return redirect(url_for("bulletin_board"))
 
 
@@ -521,11 +524,18 @@ def delete_note():
     note_id = request.form.get("note_id")
     note_to_delete = Note.query.get(note_id)
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
     if note_to_delete and note_to_delete.author == current_user:
         db.session.delete(note_to_delete)
         db.session.commit()
+
+        # --- THIS IS THE PART THAT IS LIKELY MISSING ---
+        socketio.emit("note_deleted", {"note_id": note_id})
+        # --- END OF MISSING PART ---
+
         if is_ajax:
             return jsonify({"success": True})
+
     return redirect(url_for("bulletin_board"))
 
 
