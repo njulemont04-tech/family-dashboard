@@ -1,3 +1,11 @@
+# --- START: PRODUCTION WEBSOCKET CONFIGURATION ---
+# This MUST be the first thing to run, before any other imports,
+# to ensure that the standard library is patched for green concurrency.
+import eventlet
+
+eventlet.monkey_patch()
+# --- END: PRODUCTION WEBSOCKET CONFIGURATION ---
+
 import os
 import cloudinary
 import cloudinary.uploader
