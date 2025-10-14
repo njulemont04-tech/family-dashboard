@@ -366,7 +366,7 @@ def logout():
 # ===============================================================
 @app.route("/nuke-and-pave-database/<password>")
 def nuke_and_pave(password):
-    if password == "a-very-secret-password":  # <-- CHANGE THIS
+    if password == "jetebaisetagrandmère":  # <-- CHANGE THIS
         try:
             # This is the most direct way to drop and recreate
             db.drop_all()
