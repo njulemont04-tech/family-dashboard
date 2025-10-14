@@ -1,3 +1,11 @@
+# --- START: PRODUCTION WEBSOCKET CONFIGURATION ---
+# This MUST be the first thing to run, before any other imports,
+# to ensure that the standard library is patched for green concurrency.
+import eventlet
+
+eventlet.monkey_patch()
+# --- END: PRODUCTION WEBSOCKET CONFIGURATION ---
+
 import os
 from app import app, socketio
 
@@ -5,6 +13,4 @@ from app import app, socketio
 port = int(os.environ.get("PORT", 10000))
 
 # This is the official, high-level way to start a Flask-SocketIO server.
-# It will automatically and correctly use the Eventlet server because it's installed.
-# We run it directly with Python, avoiding Gunicorn entirely.
 socketio.run(app, host="0.0.0.0", port=port)
