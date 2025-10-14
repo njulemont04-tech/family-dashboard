@@ -1,16 +1,17 @@
-# --- START: PRODUCTION WEBSOCKET CONFIGURATION ---
-# This MUST be the first thing to run, before any other imports,
-# to ensure that the standard library is patched for green concurrency.
-import eventlet
-
-eventlet.monkey_patch()
-# --- END: PRODUCTION WEBSOCKET CONFIGURATION ---
-
 import os
+import eventlet
 from app import app, socketio
 
-# Get the port from the environment, default to 10000 for Render
+# This code is safe to run on import
 port = int(os.environ.get("PORT", 10000))
 
-# This is the official, high-level way to start a Flask-SocketIO server.
-socketio.run(app, host="0.0.0.0", port=port)
+if __name__ == "__main__":
+    # This block ONLY runs when we execute `python wsgi.py` directly.
+    # It will NOT run when `flask db` imports this file.
+
+    # --- START: PRODUCTION WEBSOCKET CONFIGURATION ---
+    eventlet.monkey_patch()
+    # --- END: PRODUCTION WEBSOCKET CONFIGURATION ---
+
+    # Start the official server
+    socketio.run(app, host="0.0.0.0", port=port)
