@@ -1869,7 +1869,5 @@ def page_not_found(e):
 
 
 if __name__ == "__main__":
-    # This block is now ONLY for LOCAL development.
-    # It will not be executed when deployed on Render.
-    print("Starting Flask app in local debug mode...")
+    # This block is for LOCAL development only.
     socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
