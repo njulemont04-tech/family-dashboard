@@ -1,0 +1,140 @@
+{% extends 'base.html' %} {% block title %} Home - {{ current_family.name }} {%
+endblock %} {% block content %}
+<div class="text-center">
+  <h1 class="display-5 mb-3">Welcome, {{ current_user.username }}!</h1>
+  <p class="lead text-muted mb-5">Choose a tool to get started.</p>
+</div>
+
+<div class="row g-4 justify-content-center">
+  <!-- Lists Card -->
+  <div class="col-md-6 col-lg-5">
+    <a href="{{ url_for('dashboard') }}" class="text-decoration-none">
+      <div class="card hub-card h-100 p-3">
+        <div class="card-body d-flex align-items-center">
+          <img
+            src="{{ url_for('static', filename='icons/list.svg') }}"
+            alt="Lists Icon"
+            class="hub-icon me-4"
+          />
+          <div>
+            <h4 class="card-title mb-1">Lists</h4>
+            <p class="card-text text-muted mb-0">
+              Create shared to-do lists and check off items together.
+            </p>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Calendar Card -->
+  <div class="col-md-6 col-lg-5">
+    <a href="{{ url_for('calendar') }}" class="text-decoration-none">
+      <div class="card hub-card h-100 p-3">
+        <div class="card-body d-flex align-items-center">
+          <div class="hub-icon-wrapper me-4">
+            <img
+              src="{{ url_for('static', filename='icons/calendar.svg') }}"
+              alt="Calendar Icon"
+              class="hub-icon"
+            />
+            <span class="hub-icon-day">{{ current_day }}</span>
+          </div>
+          <div>
+            <h4 class="card-title mb-1">Calendar</h4>
+            <p class="card-text text-muted mb-0">
+              Manage and view all upcoming family events.
+            </p>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Meal Planner Card -->
+  <div class="col-md-6 col-lg-5">
+    <a href="{{ url_for('meal_planner') }}" class="text-decoration-none">
+      <div class="card hub-card h-100 p-3">
+        <div class="card-body d-flex align-items-center">
+          <img
+            src="{{ url_for('static', filename='icons/meal.svg') }}"
+            alt="Meal Planner Icon"
+            class="hub-icon me-4"
+          />
+          <div>
+            <h4 class="card-title mb-1">Meal Planner</h4>
+            <p class="card-text text-muted mb-0">
+              Plan your family's meals for the week.
+            </p>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Bulletin Board Card -->
+  <div class="col-md-6 col-lg-5">
+    <a href="{{ url_for('bulletin_board') }}" class="text-decoration-none">
+      <div class="card hub-card h-100 p-3">
+        <div class="card-body d-flex align-items-center">
+          <img
+            src="{{ url_for('static', filename='icons/bulletin.svg') }}"
+            alt="Bulletin Board Icon"
+            class="hub-icon me-4"
+          />
+          <div>
+            <h4 class="card-title mb-1">Bulletin Board</h4>
+            <p class="card-text text-muted mb-0">
+              Leave quick notes and reminders for everyone.
+            </p>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- START: NEW CHORES CARD -->
+  <div class="col-md-6 col-lg-5">
+    <a href="{{ url_for('chores') }}" class="text-decoration-none">
+      <div class="card hub-card h-100 p-3">
+        <div class="card-body d-flex align-items-center">
+          <img
+            src="{{ url_for('static', filename='icons/chores.svg') }}"
+            alt="Chores Icon"
+            class="hub-icon me-4"
+          />
+          <div>
+            <h4 class="card-title mb-1">Chores</h4>
+            <p class="card-text text-muted mb-0">
+              View and manage weekly chore assignments.
+            </p>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <!-- END: NEW CHORES CARD -->
+
+  <!-- START: NEW FAMILY VAULT CARD -->
+  <div class="col-md-6 col-lg-5">
+    <a href="{{ url_for('vault') }}" class="text-decoration-none">
+      <div class="card hub-card h-100 p-3">
+        <div class="card-body d-flex align-items-center">
+          <img
+            src="{{ url_for('static', filename='icons/vault.svg') }}"
+            alt="Family Vault Icon"
+            class="hub-icon me-4"
+          />
+          <div>
+            <h4 class="card-title mb-1">Family Vault</h4>
+            <p class="card-text text-muted mb-0">
+              Access important shared family information.
+            </p>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+  <!-- END: NEW FAMILY VAULT CARD -->
+</div>
+{% endblock %}

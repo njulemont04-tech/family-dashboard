@@ -1,0 +1,410 @@
+{% extends 'base.html' %} {% block title %}Chores{% endblock %} {% block content
+%}
+<div class="container py-4">
+  {% if current_user.id == current_family.owner_id %}
+  <!-- ###################################################### -->
+  <!-- #################### ADMIN VIEW ###################### -->
+  <!-- ###################################################### -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h2">Chores Dashboard</h1>
+    <form
+      id="generate-chores-form"
+      action="{{ url_for('generate_chores') }}"
+      method="POST"
+    >
+      <button type="submit" class="btn btn-success" id="generate-btn">
+        <i class="bi bi-lightning-charge-fill me-1"></i> Generate for this Week
+      </button>
+    </form>
+  </div>
+
+  <ul class="nav nav-tabs mb-4" id="choresTab" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link {% if active_tab == 'this-week' %}active{% endif %}"
+        id="this-week-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#this-week"
+        type="button"
+        role="tab"
+        aria-controls="this-week"
+        aria-selected="true"
+      >
+        This Week
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link"
+        id="manage-bank-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#manage-bank"
+        type="button"
+        role="tab"
+        aria-controls="manage-bank"
+        aria-selected="false"
+      >
+        Manage Bank
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button
+        class="nav-link {% if active_tab == 'history' %}active{% endif %}"
+        id="history-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#history"
+        type="button"
+        role="tab"
+        aria-controls="history"
+        aria-selected="false"
+      >
+        History
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content" id="choresTabContent">
+    <!-- "THIS WEEK" TAB PANE -->
+    <div
+      class="tab-pane fade {% if active_tab == 'this-week' %}show active{% endif %}"
+      id="this-week"
+      role="tabpanel"
+      aria-labelledby="this-week-tab"
+    >
+      <div class="mb-4">
+        <label class="form-label fw-bold">Family Weekly Progress</label>
+        <div
+          class="progress"
+          style="height: 25px"
+          data-completed="{{ family_progress.completed }}"
+          data-total="{{ family_progress.total }}"
+          id="family-progress-container"
+        >
+          <div
+            class="progress-bar progress-bar-striped progress-bar-animated"
+            role="progressbar"
+            style="width: {{ family_progress.percentage }}%;"
+            aria-valuenow="{{ family_progress.percentage }}"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            id="family-progress-bar"
+          >
+            <span id="family-progress-label"
+              >{{ family_progress.completed }} / {{ family_progress.total }}
+              Points</span
+            >
+          </div>
+        </div>
+      </div>
+
+      {% if family_progress.total == 0 %}
+      <div class="card">
+        <div class="card-body text-center">
+          <h5 class="card-title">No chores assigned yet!</h5>
+          <p class="card-text">
+            Generate this week's chore list using the button above.
+          </p>
+        </div>
+      </div>
+      {% else %}
+      <div class="row g-4" id="chore-list-container">
+        {% for item in assignments_with_progress %}
+        <div class="col-md-6 col-lg-4">
+          <div
+            class="card h-100 {% if item.member.id == current_user.id %}border-primary border-2{% endif %}"
+          >
+            <div
+              class="card-header d-flex flex-column align-items-start gap-2 {% if item.member.id == current_user.id %}bg-primary text-white{% endif %}"
+            >
+              <div class="d-flex align-items-center w-100">
+                <img
+                  src="{{ item.member.avatar_url }}"
+                  alt="{{ item.member.username }}'s avatar"
+                  class="rounded-circle me-2"
+                  width="32"
+                  height="32"
+                />
+                <h5 class="mb-0">{{ item.member.username }}</h5>
+              </div>
+              <div
+                class="progress w-100"
+                style="height: 1rem"
+                data-completed="{{ item.progress.completed }}"
+                data-total="{{ item.progress.total }}"
+                id="progress-container-{{ item.member.id }}"
+              >
+                <div
+                  class="progress-bar bg-info"
+                  role="progressbar"
+                  style="width: {{ item.progress.percentage }}%;"
+                  id="progress-bar-{{ item.member.id }}"
+                >
+                  <span class="progress-label small"
+                    >{{ item.progress.completed }} / {{ item.progress.total
+                    }}</span
+                  >
+                </div>
+              </div>
+            </div>
+            <div class="card-body chore-board">
+              {% for assignment in item.assignments %}
+              <div
+                class="chore-card {% if assignment.is_complete %}is-complete{% endif %}"
+                id="chore-card-{{ assignment.id }}"
+                data-assignment-id="{{ assignment.id }}"
+                data-points="{{ assignment.chore.points }}"
+                data-member-id="{{ item.member.id }}"
+              >
+                <div class="chore-info">
+                  <h6 class="chore-title mb-0">{{ assignment.chore.name }}</h6>
+                  <span class="badge bg-secondary chore-points"
+                    >{{ assignment.chore.points }} pts</span
+                  >
+                </div>
+                <button
+                  class="completion-button {% if item.member.id != current_user.id %}is-disabled{% endif %}"
+                  title="Mark as complete"
+                >
+                  <i class="bi bi-check-lg icon-check"></i>
+                </button>
+              </div>
+              {% else %}
+              <p class="text-muted fst-italic px-2">No chores this week!</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- "MANAGE BANK" TAB PANE -->
+    <div
+      class="tab-pane fade"
+      id="manage-bank"
+      role="tabpanel"
+      aria-labelledby="manage-bank-tab"
+    >
+      <div class="row g-5">
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header"><h5 class="mb-0">Add a New Chore</h5></div>
+            <div class="card-body">
+              <form
+                id="add-chore-form"
+                action="{{ url_for('add_chore') }}"
+                method="POST"
+              >
+                <div class="mb-3">
+                  <label for="choreName" class="form-label">Chore Name</label
+                  ><input
+                    type="text"
+                    class="form-control"
+                    id="choreName"
+                    name="chore_name"
+                    placeholder="e.g., Take out trash"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="chorePoints" class="form-label">Points</label
+                  ><input
+                    type="number"
+                    class="form-control"
+                    id="chorePoints"
+                    name="chore_points"
+                    value="5"
+                    min="1"
+                    required
+                  />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                  Add to Bank
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header"><h5 class="mb-0">Current Chores</h5></div>
+            <div class="list-group list-group-flush" id="chore-list">
+              {% if chores %}{% for chore in chores %}
+              <div
+                class="list-group-item d-flex justify-content-between align-items-center"
+                id="chore-{{ chore.id }}"
+              >
+                <div>
+                  <span>{{ chore.name }}</span
+                  ><span class="badge bg-secondary rounded-pill ms-2"
+                    >{{ chore.points }} points</span
+                  >
+                </div>
+                <form
+                  action="{{ url_for('delete_chore') }}"
+                  method="POST"
+                  class="delete-chore-form d-inline confirm-delete"
+                  style="margin: 0"
+                >
+                  <input
+                    type="hidden"
+                    name="chore_id"
+                    value="{{ chore.id }}"
+                  /><button
+                    type="submit"
+                    class="btn btn-sm btn-outline-danger"
+                    title="Delete Chore"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </div>
+              {% endfor %}{% else %}
+              <div class="list-group-item text-muted" id="no-chores-alert">
+                No chores have been added yet. Add one to get started!
+              </div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- "HISTORY" TAB PANE -->
+    <div
+      class="tab-pane fade {% if active_tab == 'history' %}show active{% endif %}"
+      id="history"
+      role="tabpanel"
+      aria-labelledby="history-tab"
+    >
+      <h3 class="h4 mb-3 text-center" id="history-week-display">
+        Week of {{ history_week_start_date.strftime('%B %d, %Y') if
+        history_week_start_date else 'N/A' }}
+      </h3>
+      {% include 'chore_history_nav.html' %}
+      <div id="history-grid-container">
+        {% with sorted_assignments=sorted_assignments_history %} {% include
+        'chore_history_grid.html' %} {% endwith %}
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- ###################################################### -->
+  <!-- #################### MEMBER VIEW ##################### -->
+  <!-- ###################################################### -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h2 mb-0">Your Weekly Chores</h1>
+      <p class="text-muted">
+        For the week of {{ week_start_date.strftime('%B %d, %Y') }}
+      </p>
+    </div>
+  </div>
+
+  {% set member_data = namespace(item=None) %} {% for loop_item in
+  assignments_with_progress %} {% if loop_item.member.id == current_user.id %}
+  {% set member_data.item = loop_item %} {% endif %} {% endfor %} {% if
+  member_data.item and member_data.item.assignments %}
+  <div class="row justify-content-center" id="chore-list-container">
+    <div class="col-lg-6">
+      <div class="card h-100">
+        <div class="card-header d-flex flex-column align-items-start gap-2">
+          <div class="d-flex align-items-center w-100">
+            <img
+              src="{{ member_data.item.member.avatar_url }}"
+              alt="{{ member_data.item.member.username }}'s avatar"
+              class="rounded-circle me-2"
+              width="32"
+              height="32"
+            />
+            <h5 class="mb-0">Your Chores</h5>
+          </div>
+          <div
+            class="progress w-100"
+            style="height: 1rem"
+            data-completed="{{ member_data.item.progress.completed }}"
+            data-total="{{ member_data.item.progress.total }}"
+            id="progress-container-{{ member_data.item.member.id }}"
+          >
+            <div
+              class="progress-bar"
+              role="progressbar"
+              style="width: {{ member_data.item.progress.percentage }}%;"
+              id="progress-bar-{{ member_data.item.member.id }}"
+            >
+              <span class="progress-label small"
+                >{{ member_data.item.progress.completed }} / {{
+                member_data.item.progress.total }}</span
+              >
+            </div>
+          </div>
+        </div>
+        <div class="card-body chore-board">
+          {% for assignment in member_data.item.assignments %}
+          <div
+            class="chore-card {% if assignment.is_complete %}is-complete{% endif %}"
+            id="chore-card-{{ assignment.id }}"
+            data-assignment-id="{{ assignment.id }}"
+            data-points="{{ assignment.chore.points }}"
+            data-member-id="{{ member_data.item.member.id }}"
+          >
+            <div class="chore-info">
+              <h6 class="chore-title mb-0">{{ assignment.chore.name }}</h6>
+              <span class="badge bg-secondary chore-points"
+                >{{ assignment.chore.points }} pts</span
+              >
+            </div>
+            <button class="completion-button" title="Mark as complete">
+              <i class="bi bi-check-lg icon-check"></i>
+            </button>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="card-body text-center">
+      <h5 class="card-title">No chores assigned yet!</h5>
+      <p class="card-text">
+        The family admin can generate this week's chore list.
+      </p>
+    </div>
+  </div>
+  {% endif %} {% endif %}
+</div>
+{% endblock %} {% block page_scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // On page load, check the URL hash and show the correct tab.
+    const urlHash = window.location.hash;
+    if (urlHash) {
+      const tabToTrigger = document.querySelector(
+        `button[data-bs-target="${urlHash}"]`
+      );
+      if (tabToTrigger) {
+        const tab = new bootstrap.Tab(tabToTrigger);
+        tab.show();
+      }
+    }
+
+    // When a tab is clicked, update the URL hash.
+    const allTabTriggers = document.querySelectorAll(
+      '#choresTab button[data-bs-toggle="tab"]'
+    );
+    allTabTriggers.forEach((tabTrigger) => {
+      tabTrigger.addEventListener("shown.bs.tab", (event) => {
+        const newHash = event.target.getAttribute("data-bs-target");
+        if (history.pushState) {
+          history.pushState(null, null, newHash);
+        } else {
+          location.hash = newHash; // Fallback for older browsers.
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}

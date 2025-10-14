@@ -1,114 +1,195 @@
 {% extends 'base.html' %} {% block title %}My Profile{% endblock %} {% block
 content %}
-<div class="container py-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <h1 class="mb-4">My Profile</h1>
+<h1 class="mb-4">My Profile</h1>
 
-      <!-- Flash Messages -->
-      {% with messages = get_flashed_messages(with_categories=true) %} {% if
-      messages %} {% for category, message in messages %}
-      <div
-        class="alert alert-{{ category }} alert-dismissible fade show"
-        role="alert"
-      >
-        {{ message }}
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="alert"
-          aria-label="Close"
-        ></button>
-      </div>
-      {% endfor %} {% endif %} {% endwith %}
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %} {% if messages
+%} {% for category, message in messages %}
+<div
+  class="alert alert-{{ category }} alert-dismissible fade show"
+  role="alert"
+>
+  {{ message }}
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="alert"
+    aria-label="Close"
+  ></button>
+</div>
+{% endfor %} {% endif %} {% endwith %}
 
-      <!-- Main Profile Card -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-md-4 text-center">
-              <img
-                src="{{ current_user.avatar_url }}"
-                alt="{{ current_user.username }}'s avatar"
-                class="img-fluid rounded-circle mb-3"
-                style="width: 150px; height: 150px; object-fit: cover"
-              />
+<div class="row g-4">
+  <!-- Left Column: Avatar Management -->
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-body text-center">
+        <h5 class="card-title">Profile Picture</h5>
+        <img
+          src="{{ current_user.avatar_url }}"
+          alt="User Avatar"
+          class="img-fluid rounded-circle mb-3"
+          style="width: 150px; height: 150px; object-fit: cover"
+        />
+        <p class="card-text"><strong>{{ current_user.username }}</strong></p>
 
-              <h4 class="mb-3">{{ current_user.username }}</h4>
-            </div>
-            <div class="col-md-8">
-              <form
-                action="{{ url_for('upload_avatar') }}"
-                method="POST"
-                enctype="multipart/form-data"
-              >
-                <div class="mb-3">
-                  <label for="avatar" class="form-label">Update Avatar</label>
-                  <input
-                    class="form-control"
-                    id="avatar"
-                    name="avatar"
-                    type="file"
-                    accept="image/png, image/jpeg, image/gif"
-                  />
-                </div>
-                <button type="submit" class="btn btn-primary w-100">
-                  Upload New Avatar
-                </button>
-              </form>
-            </div>
+        <form
+          action="{{ url_for('upload_avatar') }}"
+          method="POST"
+          enctype="multipart/form-data"
+        >
+          <div class="mb-3">
+            <label for="avatar" class="form-label">Upload a new picture:</label>
+            <input
+              class="form-control"
+              type="file"
+              id="avatar"
+              name="avatar"
+              required
+            />
           </div>
-        </div>
-      </div>
-
-      <!-- NEW: Change Password Card -->
-      <div class="card">
-        <div class="card-header">
-          <h5 class="mb-0">Change Password</h5>
-        </div>
-        <div class="card-body">
-          <form action="{{ url_for('change_password') }}" method="POST">
-            <div class="mb-3">
-              <label for="current_password" class="form-label"
-                >Current Password</label
-              >
-              <input
-                type="password"
-                class="form-control"
-                id="current_password"
-                name="current_password"
-                required
-              />
-            </div>
-            <div class="mb-3">
-              <label for="new_password" class="form-label">New Password</label>
-              <input
-                type="password"
-                class="form-control"
-                id="new_password"
-                name="new_password"
-                required
-              />
-            </div>
-            <div class="mb-3">
-              <label for="confirm_password" class="form-label"
-                >Confirm New Password</label
-              >
-              <input
-                type="password"
-                class="form-control"
-                id="confirm_password"
-                name="confirm_password"
-                required
-              />
-            </div>
-            <button type="submit" class="btn btn-warning">
-              Update Password
-            </button>
-          </form>
-        </div>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </form>
       </div>
     </div>
   </div>
+
+  <!-- Right Column: Account & Family Settings -->
+  <div class="col-lg-8">
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Change Password</h5>
+        <form action="{{ url_for('change_password') }}" method="POST">
+          <div class="mb-3">
+            <label for="old_password" class="form-label">Old Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="old_password"
+              name="old_password"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="new_password" class="form-label">New Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="new_password"
+              name="new_password"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-success">
+            Save New Password
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- START: NEW HOUSEHOLD MEMBERS CARD -->
+    <div class="card">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5 class="mb-0">Household Members</h5>
+        {% if current_user.id == current_family.owner_id %}
+        <button
+          class="btn btn-sm btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#inviteUserModal"
+        >
+          <i class="bi bi-person-plus-fill me-1"></i> Invite Member
+        </button>
+        {% endif %}
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for member in current_members %}
+        <li class="list-group-item d-flex align-items-center">
+          <img
+            src="{{ member.avatar_url }}"
+            class="rounded-circle me-3"
+            width="40"
+            height="40"
+            alt="{{ member.username }}'s avatar"
+          />
+          <div>
+            <strong>{{ member.username }}</strong>
+            {% if member.id == current_family.owner_id %}<span
+              class="badge bg-secondary ms-2"
+              >Admin</span
+            >{% endif %}
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <!-- END: NEW HOUSEHOLD MEMBERS CARD -->
+  </div>
 </div>
-{% endblock %}
+
+<!-- MODAL FOR INVITING USERS (for Admin only) -->
+{% if current_user.id == current_family.owner_id %}
+<div
+  class="modal fade"
+  id="inviteUserModal"
+  tabindex="-1"
+  aria-labelledby="inviteUserModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="inviteUserModalLabel">
+          Invite a New Member
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <form
+        action="{{ url_for('invite_user') }}"
+        method="POST"
+        class="invite-user-form"
+      >
+        <div class="modal-body">
+          <p>
+            Select a registered user to invite to your private family space.
+            They will gain access to all shared features.
+          </p>
+          <div class="mb-3">
+            <label for="invite-user-select" class="form-label"
+              >User to Invite</label
+            >
+            <select
+              class="form-select"
+              id="invite-user-select"
+              name="username"
+              required
+            >
+              <!-- Options will be populated by JavaScript -->
+              <option value="" disabled selected>Choose a user...</option>
+              {% for user in inviteable_users %}
+              <option value="{{ user.username }}">{{ user.username }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">Send Invite</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %} {% endblock %}

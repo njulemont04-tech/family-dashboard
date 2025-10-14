@@ -1,0 +1,24 @@
+<!-- In templates/chore_history_nav.html -->
+
+<nav
+  id="chore-history-nav"
+  class="d-flex justify-content-center align-items-center mb-4"
+>
+  <a
+    href="{{ url_for('api_chore_history', start_date_str=prev_week_date.strftime('%Y-%m-%d')) }}"
+    class="btn btn-outline-secondary history-nav-link"
+    aria-label="Previous Week"
+  >
+    <i class="bi bi-arrow-left"></i> Previous Week
+  </a>
+
+  <span class="mx-4 text-muted">Navigate Weeks</span>
+
+  <a
+    href="{{ url_for('api_chore_history', start_date_str=next_week_date.strftime('%Y-%m-%d')) }}"
+    class="btn btn-outline-secondary history-nav-link {% if not show_next_week %}disabled{% endif %}"
+    aria-label="Next Week"
+  >
+    Next Week <i class="bi bi-arrow-right"></i>
+  </a>
+</nav>
