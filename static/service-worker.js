@@ -1,5 +1,18 @@
-// A simple, no-op service worker that's enough to make the app installable.
+// This is a basic "network-first" service worker.
+// It satisfies the fetch handler requirement for PWA installability.
+
+self.addEventListener("install", (event) => {
+  console.log("Service worker installing...");
+  // Add a call to skipWaiting to activate the new service worker immediately.
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  console.log("Service worker activating...");
+});
+
 self.addEventListener("fetch", (event) => {
-  // We are not caching anything for now, just fulfilling the requirement.
-  return;
+  // This fetch handler is the key part.
+  // We are just letting the network handle the request, which is fine for now.
+  event.respondWith(fetch(event.request));
 });
