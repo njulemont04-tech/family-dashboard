@@ -1,3 +1,7 @@
+import eventlet
+
+eventlet.monkey_patch()
+
 import os
 import cloudinary
 import cloudinary.uploader
@@ -359,32 +363,6 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for("login"))
-
-
-# ===============================================================
-# ================ TEMPORARY DATABASE RESET ROUTE ===============
-# ===============================================================
-@app.route("/nuke-and-pave-database/<password>")
-def nuke_and_pave(password):
-    if password == "jetebaisetagrandmère":  # <-- CHANGE THIS
-        try:
-            # This is the most direct way to drop and recreate
-            db.drop_all()
-            db.create_all()
-            # We need to stamp the migration table as up-to-date
-            from flask_migrate import stamp
-
-            stamp()
-            return "SUCCESS: Database has been wiped and recreated.", 200
-        except Exception as e:
-            return f"ERROR: {e}", 500
-    else:
-        return "Forbidden.", 403
-
-
-# ===============================================================
-
-# --- ADD THESE NEW FAMILY MANAGEMENT ROUTES ---
 
 
 @app.route("/families")
