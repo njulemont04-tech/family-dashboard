@@ -10,21 +10,18 @@ total_items * 100) if total_items > 0 else 0 %}
     <div class="card-body">
       <h5 class="card-title">{{ list.name }}</h5>
 
-      <!-- START: THE FIX -->
-      <!-- This text will now always be visible -->
       <p class="card-text text-muted small mb-2">
-        {{ done_items }} of {{ total_items }} items complete
+        {# This handles pluralization correctly: e.g., "1 item" vs "5 items" #}
+        {{ _('%(done)s of %(total)s', done=done_items, total=total_items) }} {{
+        ngettext('item complete', 'items complete', total_items) }}
       </p>
 
-      <!-- Conditionally show either the progress bar OR the completed message -->
       {% if total_items > 0 and done_items == total_items %}
-      <!-- State 1: All items are complete -->
       <div class="d-flex align-items-center text-success">
         <i class="bi bi-check-circle-fill me-2"></i>
-        <span class="fw-bold">Completed</span>
+        <span class="fw-bold">{{ _('Completed') }}</span>
       </div>
       {% else %}
-      <!-- State 2: In-progress or empty list -->
       <div class="progress" style="height: 8px">
         <div
           class="progress-bar"
@@ -36,7 +33,6 @@ total_items * 100) if total_items > 0 else 0 %}
         ></div>
       </div>
       {% endif %}
-      <!-- END: THE FIX -->
     </div>
   </a>
 </div>

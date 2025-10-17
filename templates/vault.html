@@ -1,14 +1,14 @@
-{% extends 'base.html' %} {% block title %}Family Vault{% endblock %} {% block
-content %}
+{% extends 'base.html' %} {% block title %}{{ _('Family Vault') }}{% endblock %}
+{% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="h2 mb-0">Family Vault</h1>
+  <h1 class="h2 mb-0">{{ _('Family Vault') }}</h1>
   {% if current_user.id == current_family.owner_id %}
   <button
     class="btn btn-primary"
     data-bs-toggle="modal"
     data-bs-target="#addEntryModal"
   >
-    <i class="bi bi-plus-circle me-1"></i> Add New Entry
+    <i class="bi bi-plus-circle me-1"></i> {{ _('Add New Entry') }}
   </button>
   {% endif %}
 </div>
@@ -24,15 +24,15 @@ content %}
     type="button"
     class="btn-close"
     data-bs-dismiss="alert"
-    aria-label="Close"
+    aria-label="{{ _('Close') }}"
   ></button>
 </div>
 {% endfor %} {% endif %} {% endwith %} {% if not entries_by_category %}
 <div class="card" id="empty-vault-card">
   <div class="card-body text-center">
-    <h5 class="card-title">The Vault is Empty</h5>
+    <h5 class="card-title">{{ _('The Vault is Empty') }}</h5>
     <p class="card-text">
-      The family admin can add important household information here.
+      {{ _('The family admin can add important household information here.') }}
     </p>
   </div>
 </div>
@@ -95,25 +95,27 @@ content %}
       <form action="{{ url_for('add_vault_entry') }}" method="POST">
         <div class="modal-header">
           <h5 class="modal-title" id="addEntryModalLabel">
-            Add New Vault Entry
+            {{ _('Add New Vault Entry') }}
           </h5>
           <button
             type="button"
             class="btn-close"
             data-bs-dismiss="modal"
-            aria-label="Close"
+            aria-label="{{ _('Close') }}"
           ></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label for="add-category" class="form-label">Category</label>
+            <label for="add-category" class="form-label"
+              >{{ _('Category') }}</label
+            >
             <input
               type="text"
               class="form-control"
               id="add-category"
               name="category"
               list="category-suggestions"
-              placeholder="e.g., Emergency Contacts"
+              placeholder="{{ _('e.g., Emergency Contacts') }}"
               required
             />
             <datalist id="category-suggestions">
@@ -123,18 +125,20 @@ content %}
             </datalist>
           </div>
           <div class="mb-3">
-            <label for="add-title" class="form-label">Title</label>
+            <label for="add-title" class="form-label">{{ _('Title') }}</label>
             <input
               type="text"
               class="form-control"
               id="add-title"
               name="title"
-              placeholder="e.g., Guest Wi-Fi"
+              placeholder="{{ _('e.g., Guest Wi-Fi') }}"
               required
             />
           </div>
           <div class="mb-3">
-            <label for="add-content" class="form-label">Content</label>
+            <label for="add-content" class="form-label"
+              >{{ _('Content') }}</label
+            >
             <textarea
               class="form-control"
               id="add-content"
@@ -150,9 +154,11 @@ content %}
             class="btn btn-secondary"
             data-bs-dismiss="modal"
           >
-            Cancel
+            {{ _('Cancel') }}
           </button>
-          <button type="submit" class="btn btn-primary">Save Entry</button>
+          <button type="submit" class="btn btn-primary">
+            {{ _('Save Entry') }}
+          </button>
         </div>
       </form>
     </div>

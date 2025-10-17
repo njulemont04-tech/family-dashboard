@@ -9,8 +9,8 @@
         {% if current_family.owner == current_user %}
         <form action="{{ url_for('delete_list') }}" method="POST" class="d-inline confirm-delete mb-0">
             <input type="hidden" name="list_to_delete" value="{{ list.id }}">
-            <button type="submit" class="btn btn-outline-danger" title="Delete List">
-                <i class="bi bi-trash"></i> Delete List
+            <button type="submit" class="btn btn-outline-danger" title="{{ _('Delete List') }}">
+                <i class="bi bi-trash"></i> {{ _('Delete List') }}
             </button>
         </form>
         {% endif %}
@@ -22,8 +22,8 @@
             <form action="{{ url_for('add_item') }}" method="POST" class="item-add-form">
                 <input type="hidden" name="list_id" value="{{ list.id }}">
                 <div class="input-group">
-                    <input type="text" name="item" class="form-control" placeholder="Add a new item..." required>
-                    <button class="btn btn-primary" type="submit">Add Item</button>
+                    <input type="text" name="item" class="form-control" placeholder="{{ _('Add a new item...') }}" required>
+                    <button class="btn btn-primary" type="submit">{{ _('Add Item') }}</button>
                 </div>
             </form>
         </div>
@@ -41,12 +41,12 @@
             
             <!-- Hover Actions -->
             <div class="item-actions ms-auto">
-                <button class="btn btn-sm border-0 p-1 item-edit-button" title="Edit">
+                <button class="btn btn-sm border-0 p-1 item-edit-button" title="{{ _('Edit') }}">
                     <i class="bi bi-pencil"></i>
                 </button>
                 <form action="{{ url_for('delete_item') }}" method="POST" class="d-inline confirm-delete mb-0" data-item-id="{{ item.id }}">
                     <input type="hidden" name="item_to_delete" value="{{ item.id }}">
-                    <button type="submit" class="btn btn-sm border-0 p-1" title="Delete">
+                    <button type="submit" class="btn btn-sm border-0 p-1" title="{{ _('Delete') }}">
                         <i class="bi bi-trash"></i>
                     </button>
                 </form>
@@ -57,7 +57,7 @@
                 <input type="hidden" name="item_id" value="{{ item.id }}">
                 <div class="input-group">
                     <input type="text" name="new_text" class="form-control form-control-sm" value="{{ item.text }}">
-                    <button type="submit" class="btn btn-sm btn-outline-success">Save</button>
+                    <button type="submit" class="btn btn-sm btn-outline-success">{{ _('Save') }}</button>
                 </div>
             </form>
         </div>
@@ -69,7 +69,7 @@
          {% if not items|selectattr('done')|list %}style="display: none;"{% endif %}>
          <h4 class="completed-items-header">
             <button class="btn btn-link text-decoration-none text-muted" type="button" data-bs-toggle="collapse" data-bs-target="#completedItemsCollapse" aria-expanded="true">
-                Completed Items
+                {{ _('Completed Items') }}
                 <i class="bi bi-chevron-down ms-1"></i>
             </button>
         </h4>
@@ -85,12 +85,12 @@
                         
                         <!-- Hover Actions -->
                         <div class="item-actions ms-auto">
-                            <button class="btn btn-sm border-0 p-1 item-edit-button" title="Edit">
+                            <button class="btn btn-sm border-0 p-1 item-edit-button" title="{{ _('Edit') }}">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <form action="{{ url_for('delete_item') }}" method="POST" class="d-inline confirm-delete mb-0" data-item-id="{{ item.id }}">
                                 <input type="hidden" name="item_to_delete" value="{{ item.id }}">
-                                <button type="submit" class="btn btn-sm border-0 p-1" title="Delete">
+                                <button type="submit" class="btn btn-sm border-0 p-1" title="{{ _('Delete') }}">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
@@ -101,7 +101,7 @@
                             <input type="hidden" name="item_id" value="{{ item.id }}">
                             <div class="input-group">
                                 <input type="text" name="new_text" class="form-control form-control-sm" value="{{ item.text }}">
-                                <button type="submit" class="btn btn-sm btn-outline-success">Save</button>
+                                <button type="submit" class="btn btn-sm btn-outline-success">{{ _('Save') }}</button>
                             </div>
                         </form>
                     </div>
@@ -121,18 +121,18 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Add Item to {{ list.name }}</h5>
+        <h5 class="modal-title">{{ _('Add Item to %(list_name)s', list_name=list.name) }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <form action="{{ url_for('add_item') }}" method="POST" class="item-add-form" id="modal-add-item-form">
             <input type="hidden" name="list_id" value="{{ list.id }}">
-            <input type="text" name="item" class="form-control" placeholder="New item..." required>
+            <input type="text" name="item" class="form-control" placeholder="{{ _('New item...') }}" required>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-primary" form="modal-add-item-form">Add Item</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Cancel') }}</button>
+        <button type="submit" class="btn btn-primary" form="modal-add-item-form">{{ _('Add Item') }}</button>
       </div>
     </div>
   </div>

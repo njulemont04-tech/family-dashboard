@@ -1,9 +1,9 @@
-{% extends 'auth_base.html' %} {% block title %}Register{% endblock %} {% block
-content %}
+{% extends 'auth_base.html' %} {% block title %}{{ _('Register') }}{% endblock
+%} {% block content %}
 <div class="row justify-content-center">
   <div class="col-md-5 col-lg-4">
     <main class="form-signin w-100 m-auto text-center">
-      <h1 class="h3 mb-3 fw-normal">Create an Account</h1>
+      <h1 class="h3 mb-3 fw-normal">{{ _('Create an Account') }}</h1>
 
       {% with messages = get_flashed_messages(with_categories=true) %} {% if
       messages %} {% for category, message in messages %}
@@ -17,10 +17,10 @@ content %}
             name="username"
             class="form-control"
             id="floatingInput"
-            placeholder="Username"
+            placeholder="{{ _('Username') }}"
             required
           />
-          <label for="floatingInput">Username</label>
+          <label for="floatingInput">{{ _('Username') }}</label>
         </div>
         <div class="input-group mb-3">
           <div class="form-floating">
@@ -29,10 +29,10 @@ content %}
               name="password"
               class="form-control"
               id="password-input"
-              placeholder="Password"
+              placeholder="{{ _('Password') }}"
               required
             />
-            <label for="password-input">Password</label>
+            <label for="password-input">{{ _('Password') }}</label>
           </div>
           <button
             class="btn btn-outline-secondary"
@@ -43,12 +43,12 @@ content %}
           </button>
         </div>
         <button class="w-100 btn btn-lg btn-primary" type="submit">
-          Register
+          {{ _('Register') }}
         </button>
       </form>
       <p class="mt-3">
-        Already have an account?
-        <a href="{{ url_for('login') }}">Log in here</a>
+        {{ _('Already have an account?') }}
+        <a href="{{ url_for('login') }}">{{ _('Log in here') }}</a>
       </p>
     </main>
   </div>

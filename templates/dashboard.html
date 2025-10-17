@@ -1,14 +1,14 @@
-{% extends 'base.html' %} {% block title %} Family Dashboard {% endblock %} {%
-block content %}
+{% extends 'base.html' %} {% block title %} {{ _('Family Dashboard') }} {%
+endblock %} {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="h2 mb-0">Family Dashboard</h1>
+  <h1 class="h2 mb-0">{{ _('Family Dashboard') }}</h1>
   {% if current_family.owner == current_user %}
   <button
     class="btn btn-primary"
     data-bs-toggle="modal"
     data-bs-target="#createListModal"
   >
-    <i class="bi bi-plus-lg me-1"></i> New List
+    <i class="bi bi-plus-lg me-1"></i> {{ _('New List') }}
   </button>
   {% endif %}
 </div>
@@ -19,8 +19,8 @@ block content %}
   endfor %} {% else %}
   <div class="col-12" id="no-lists-message">
     <div class="text-center p-5 bg-light rounded">
-      <h4>No lists yet!</h4>
-      <p>The family admin can create a new list to get started.</p>
+      <h4>{{ _('No lists yet!') }}</h4>
+      <p>{{ _('The family admin can create a new list to get started.') }}</p>
     </div>
   </div>
   {% endif %}
@@ -32,12 +32,12 @@ block content %}
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Create New List</h5>
+        <h5 class="modal-title">{{ _('Create New List') }}</h5>
         <button
           type="button"
           class="btn-close"
           data-bs-dismiss="modal"
-          aria-label="Close"
+          aria-label="{{ _('Close') }}"
         ></button>
       </div>
       <form
@@ -50,7 +50,7 @@ block content %}
             type="text"
             name="new_list_name"
             class="form-control"
-            placeholder="e.g., Groceries, Weekend To-Do..."
+            placeholder="{{ _('e.g., Groceries, Weekend To-Do...') }}"
             required
           />
         </div>
@@ -60,9 +60,11 @@ block content %}
             class="btn btn-secondary"
             data-bs-dismiss="modal"
           >
-            Cancel
+            {{ _('Cancel') }}
           </button>
-          <button type="submit" class="btn btn-primary">Create List</button>
+          <button type="submit" class="btn btn-primary">
+            {{ _('Create List') }}
+          </button>
         </div>
       </form>
     </div>

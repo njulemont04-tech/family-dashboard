@@ -1,7 +1,7 @@
-{% extends 'base.html' %} {% block title %}Calendar{% endblock %} {% block
-content %}
+{% extends 'base.html' %} {% block title %}{{ _('Calendar') }}{% endblock %} {%
+block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="mb-0">Calendar</h1>
+  <h1 class="mb-0">{{ _('Calendar') }}</h1>
 </div>
 
 <div class="row">
@@ -9,14 +9,14 @@ content %}
   <div class="col-md-4">
     <div class="card">
       <div class="card-body">
-        <h5 class="card-title">Add New Event</h5>
+        <h5 class="card-title">{{ _('Add New Event') }}</h5>
         <form
           action="{{ url_for('add_event') }}"
           method="POST"
           id="add-event-form"
         >
           <div class="mb-3">
-            <label for="event-title" class="form-label">Title</label>
+            <label for="event-title" class="form-label">{{ _('Title') }}</label>
             <input
               type="text"
               name="title"
@@ -26,7 +26,7 @@ content %}
             />
           </div>
           <div class="mb-3">
-            <label for="event-date" class="form-label">Date</label>
+            <label for="event-date" class="form-label">{{ _('Date') }}</label>
             <input
               type="date"
               name="date"
@@ -36,7 +36,7 @@ content %}
             />
           </div>
           <div class="mb-3">
-            <label for="event-time" class="form-label">Time</label>
+            <label for="event-time" class="form-label">{{ _('Time') }}</label>
             <input
               type="time"
               name="time"
@@ -45,7 +45,9 @@ content %}
               required
             />
           </div>
-          <button type="submit" class="btn btn-primary w-100">Add Event</button>
+          <button type="submit" class="btn btn-primary w-100">
+            {{ _('Add Event') }}
+          </button>
         </form>
       </div>
     </div>
@@ -65,11 +67,11 @@ content %}
             <div>
               <h5 class="card-title">{{ event.title }}</h5>
               <p class="card-subtitle mb-2 text-muted">
-                {{ event.date.strftime('%a, %b %d, %Y') }} at {{
+                {{ event.date.strftime('%a, %b %d, %Y') }} {{ _('at') }} {{
                 event.time.strftime('%I:%M %p') }}
               </p>
               <small class="text-muted"
-                >Added by {{ event.author.username }}</small
+                >{{ _('Added by') }} {{ event.author.username }}</small
               >
             </div>
             <div>
@@ -84,7 +86,7 @@ content %}
                 <button
                   type="submit"
                   class="btn btn-sm btn-outline-danger"
-                  title="Delete Event"
+                  title="{{ _('Delete Event') }}"
                 >
                   <i class="bi bi-trash"></i>
                 </button>
@@ -95,7 +97,7 @@ content %}
         </div>
       </div>
       {% else %}
-      <div class="alert alert-info">No events scheduled yet.</div>
+      <div class="alert alert-info">{{ _('No events scheduled yet.') }}</div>
       {% endfor %}
     </div>
   </div>

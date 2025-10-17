@@ -1,12 +1,14 @@
-{% extends 'auth_base.html' %} {% block title %}Login{% endblock %} {% block
-content %}
+{% extends 'auth_base.html' %} {% block title %}{{ _('Login') }}{% endblock %}
+{% block content %}
 <div class="row justify-content-center">
   <div class="col-md-5 col-lg-4">
     <main class="form-signin w-100 m-auto text-center">
-      <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
+      <h1 class="h3 mb-3 fw-normal">{{ _('Please sign in') }}</h1>
 
       {% with messages = get_flashed_messages(with_categories=true) %} {% if
       messages %} {% for category, message in messages %}
+      <!-- Note: The 'message' variable is NOT translated here -->
+      <!-- because it was already translated in app.py before being flashed -->
       <div class="alert alert-{{ category }}">{{ message }}</div>
       {% endfor %} {% endif %} {% endwith %}
 
@@ -17,11 +19,11 @@ content %}
             name="username"
             class="form-control"
             id="floatingInput"
-            placeholder="Username"
+            placeholder="{{ _('Username') }}"
             required
             value="{{ username or '' }}"
           />
-          <label for="floatingInput">Username</label>
+          <label for="floatingInput">{{ _('Username') }}</label>
         </div>
         <div class="input-group mb-3">
           <div class="form-floating">
@@ -30,10 +32,10 @@ content %}
               name="password"
               class="form-control"
               id="password-input"
-              placeholder="Password"
+              placeholder="{{ _('Password') }}"
               required
             />
-            <label for="password-input">Password</label>
+            <label for="password-input">{{ _('Password') }}</label>
           </div>
           <button
             class="btn btn-outline-secondary"
@@ -44,12 +46,12 @@ content %}
           </button>
         </div>
         <button class="w-100 btn btn-lg btn-primary" type="submit">
-          Sign in
+          {{ _('Sign in') }}
         </button>
       </form>
       <p class="mt-3">
-        Don't have an account?
-        <a href="{{ url_for('register') }}">Register here</a>
+        {{ _("Don't have an account?") }}
+        <a href="{{ url_for('register') }}">{{ _('Register here') }}</a>
       </p>
     </main>
   </div>

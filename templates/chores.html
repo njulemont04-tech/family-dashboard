@@ -1,19 +1,20 @@
-{% extends 'base.html' %} {% block title %}Chores{% endblock %} {% block content
-%}
+{% extends 'base.html' %} {% block title %}{{ _('Chores') }}{% endblock %} {%
+block content %}
 <div class="container py-4">
   {% if current_user.id == current_family.owner_id %}
   <!-- ###################################################### -->
   <!-- #################### ADMIN VIEW ###################### -->
   <!-- ###################################################### -->
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h2">Chores Dashboard</h1>
+    <h1 class="h2">{{ _('Chores Dashboard') }}</h1>
     <form
       id="generate-chores-form"
       action="{{ url_for('generate_chores') }}"
       method="POST"
     >
       <button type="submit" class="btn btn-success" id="generate-btn">
-        <i class="bi bi-lightning-charge-fill me-1"></i> Generate for this Week
+        <i class="bi bi-lightning-charge-fill me-1"></i>
+        {{ _('Generate for this Week') }}
       </button>
     </form>
   </div>
@@ -30,7 +31,7 @@
         aria-controls="this-week"
         aria-selected="true"
       >
-        This Week
+        {{ _('This Week') }}
       </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -44,7 +45,7 @@
         aria-controls="manage-bank"
         aria-selected="false"
       >
-        Manage Bank
+        {{ _('Manage Bank') }}
       </button>
     </li>
     <li class="nav-item" role="presentation">
@@ -58,7 +59,7 @@
         aria-controls="history"
         aria-selected="false"
       >
-        History
+        {{ _('History') }}
       </button>
     </li>
   </ul>
@@ -72,7 +73,9 @@
       aria-labelledby="this-week-tab"
     >
       <div class="mb-4">
-        <label class="form-label fw-bold">Family Weekly Progress</label>
+        <label class="form-label fw-bold"
+          >{{ _('Family Weekly Progress') }}</label
+        >
         <div
           class="progress"
           style="height: 25px"
@@ -90,8 +93,8 @@
             id="family-progress-bar"
           >
             <span id="family-progress-label"
-              >{{ family_progress.completed }} / {{ family_progress.total }}
-              Points</span
+              >{{ family_progress.completed }} / {{ family_progress.total }} {{
+              _('Points') }}</span
             >
           </div>
         </div>
@@ -100,9 +103,9 @@
       {% if family_progress.total == 0 %}
       <div class="card">
         <div class="card-body text-center">
-          <h5 class="card-title">No chores assigned yet!</h5>
+          <h5 class="card-title">{{ _('No chores assigned yet!') }}</h5>
           <p class="card-text">
-            Generate this week's chore list using the button above.
+            {{ _("Generate this week's chore list using the button above.") }}
           </p>
         </div>
       </div>
@@ -119,7 +122,7 @@
               <div class="d-flex align-items-center w-100">
                 <img
                   src="{{ item.member.avatar_url }}"
-                  alt="{{ item.member.username }}'s avatar"
+                  alt="{{ _('%(username)s\'s avatar', username=item.member.username) }}"
                   class="rounded-circle me-2"
                   width="32"
                   height="32"
@@ -158,18 +161,20 @@
                 <div class="chore-info">
                   <h6 class="chore-title mb-0">{{ assignment.chore.name }}</h6>
                   <span class="badge bg-secondary chore-points"
-                    >{{ assignment.chore.points }} pts</span
+                    >{{ assignment.chore.points }} {{ _('pts') }}</span
                   >
                 </div>
                 <button
                   class="completion-button {% if item.member.id != current_user.id %}is-disabled{% endif %}"
-                  title="Mark as complete"
+                  title="{{ _('Mark as complete') }}"
                 >
                   <i class="bi bi-check-lg icon-check"></i>
                 </button>
               </div>
               {% else %}
-              <p class="text-muted fst-italic px-2">No chores this week!</p>
+              <p class="text-muted fst-italic px-2">
+                {{ _('No chores this week!') }}
+              </p>
               {% endfor %}
             </div>
           </div>
@@ -189,7 +194,9 @@
       <div class="row g-5">
         <div class="col-lg-4">
           <div class="card">
-            <div class="card-header"><h5 class="mb-0">Add a New Chore</h5></div>
+            <div class="card-header">
+              <h5 class="mb-0">{{ _('Add a New Chore') }}</h5>
+            </div>
             <div class="card-body">
               <form
                 id="add-chore-form"
@@ -197,18 +204,20 @@
                 method="POST"
               >
                 <div class="mb-3">
-                  <label for="choreName" class="form-label">Chore Name</label
+                  <label for="choreName" class="form-label"
+                    >{{ _('Chore Name') }}</label
                   ><input
                     type="text"
                     class="form-control"
                     id="choreName"
                     name="chore_name"
-                    placeholder="e.g., Take out trash"
+                    placeholder="{{ _('e.g., Take out trash') }}"
                     required
                   />
                 </div>
                 <div class="mb-3">
-                  <label for="chorePoints" class="form-label">Points</label
+                  <label for="chorePoints" class="form-label"
+                    >{{ _('Points') }}</label
                   ><input
                     type="number"
                     class="form-control"
@@ -220,7 +229,7 @@
                   />
                 </div>
                 <button type="submit" class="btn btn-primary w-100">
-                  Add to Bank
+                  {{ _('Add to Bank') }}
                 </button>
               </form>
             </div>
@@ -228,7 +237,9 @@
         </div>
         <div class="col-lg-8">
           <div class="card">
-            <div class="card-header"><h5 class="mb-0">Current Chores</h5></div>
+            <div class="card-header">
+              <h5 class="mb-0">{{ _('Current Chores') }}</h5>
+            </div>
             <div class="list-group list-group-flush" id="chore-list">
               {% if chores %}{% for chore in chores %}
               <div
@@ -238,7 +249,7 @@
                 <div>
                   <span>{{ chore.name }}</span
                   ><span class="badge bg-secondary rounded-pill ms-2"
-                    >{{ chore.points }} points</span
+                    >{{ chore.points }} {{ _('points') }}</span
                   >
                 </div>
                 <form
@@ -254,7 +265,7 @@
                   /><button
                     type="submit"
                     class="btn btn-sm btn-outline-danger"
-                    title="Delete Chore"
+                    title="{{ _('Delete Chore') }}"
                   >
                     <i class="bi bi-trash"></i>
                   </button>
@@ -262,7 +273,8 @@
               </div>
               {% endfor %}{% else %}
               <div class="list-group-item text-muted" id="no-chores-alert">
-                No chores have been added yet. Add one to get started!
+                {{ _('No chores have been added yet. Add one to get started!')
+                }}
               </div>
               {% endif %}
             </div>
@@ -279,10 +291,11 @@
       aria-labelledby="history-tab"
     >
       <h3 class="h4 mb-3 text-center" id="history-week-display">
-        Week of {{ history_week_start_date.strftime('%B %d, %Y') if
-        history_week_start_date else 'N/A' }}
+        {{ _('Week of %(date)s', date=(history_week_start_date.strftime('%B %d,
+        %Y') if history_week_start_date else 'N/A')) }}
       </h3>
       {% include 'chore_history_nav.html' %}
+      <!-- NOTE: The included templates chore_history_nav.html and chore_history_grid.html will also need to be translated. -->
       <div id="history-grid-container">
         {% with sorted_assignments=sorted_assignments_history %} {% include
         'chore_history_grid.html' %} {% endwith %}
@@ -296,9 +309,10 @@
   <!-- ###################################################### -->
   <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-      <h1 class="h2 mb-0">Your Weekly Chores</h1>
+      <h1 class="h2 mb-0">{{ _('Your Weekly Chores') }}</h1>
       <p class="text-muted">
-        For the week of {{ week_start_date.strftime('%B %d, %Y') }}
+        {{ _('For the week of %(date)s', date=week_start_date.strftime('%B %d,
+        %Y')) }}
       </p>
     </div>
   </div>
@@ -314,12 +328,12 @@
           <div class="d-flex align-items-center w-100">
             <img
               src="{{ member_data.item.member.avatar_url }}"
-              alt="{{ member_data.item.member.username }}'s avatar"
+              alt="{{ _('%(username)s\'s avatar', username=member_data.item.member.username) }}"
               class="rounded-circle me-2"
               width="32"
               height="32"
             />
-            <h5 class="mb-0">Your Chores</h5>
+            <h5 class="mb-0">{{ _('Your Chores') }}</h5>
           </div>
           <div
             class="progress w-100"
@@ -353,10 +367,13 @@
             <div class="chore-info">
               <h6 class="chore-title mb-0">{{ assignment.chore.name }}</h6>
               <span class="badge bg-secondary chore-points"
-                >{{ assignment.chore.points }} pts</span
+                >{{ assignment.chore.points }} {{ _('pts') }}</span
               >
             </div>
-            <button class="completion-button" title="Mark as complete">
+            <button
+              class="completion-button"
+              title="{{ _('Mark as complete') }}"
+            >
               <i class="bi bi-check-lg icon-check"></i>
             </button>
           </div>
@@ -368,9 +385,9 @@
   {% else %}
   <div class="card">
     <div class="card-body text-center">
-      <h5 class="card-title">No chores assigned yet!</h5>
+      <h5 class="card-title">{{ _('No chores assigned yet!') }}</h5>
       <p class="card-text">
-        The family admin can generate this week's chore list.
+        {{ _("The family admin can generate this week's chore list.") }}
       </p>
     </div>
   </div>

@@ -1,22 +1,22 @@
-{% extends 'base.html' %} {% block title %}Meal Planner{% endblock %} {% block
-content %}
+{% extends 'base.html' %} {% block title %}{{ _('Meal Planner') }}{% endblock %}
+{% block content %}
 <div class="container py-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h2">Weekly Dinner Plan</h1>
+    <h1 class="h2">{{ _('Weekly Dinner Plan') }}</h1>
   </div>
 
   <div class="row g-4" id="meal-board">
     {% for day_info in week_schedule %} {% set meal =
     meal_plan.get(day_info.name) %}
     <div class="col-lg-4 col-md-6">
-      <!-- START: THE CHANGE IS ON THE NEXT LINE -->
       <div
         class="card h-100 meal-day-card day-{{ day_info.name|lower }} {% if meal %}meal-planned{% endif %}"
       >
-        <!-- END: THE CHANGE IS ON THE PREVIOUS LINE -->
         <div class="card-header">
           <div class="d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{{ day_info.name }}</h5>
+            {# The day name comes from the server, so it needs to be translated
+            there. For now, we assume it is. #}
+            <h5 class="mb-0">{{ _(day_info.name) }}</h5>
             <small class="text-muted"
               >{{ day_info.date.strftime('%b %d') }}</small
             >
@@ -39,7 +39,7 @@ content %}
           {% endif %} {% else %}
           <div class="meal-empty-state">
             <i class="bi bi-plus-circle display-6 text-muted"></i>
-            <p class="text-muted mt-2 mb-0">Add a meal</p>
+            <p class="text-muted mt-2 mb-0">{{ _('Add a meal') }}</p>
           </div>
           {% endif %}
         </div>
@@ -61,39 +61,39 @@ content %}
     <div class="modal-content">
       <form id="meal-form">
         <div class="modal-header">
-          <h5 class="modal-title" id="mealModalLabel">Edit Meal</h5>
+          <h5 class="modal-title" id="mealModalLabel">{{ _('Edit Meal') }}</h5>
           <button
             type="button"
             class="btn-close"
             data-bs-dismiss="modal"
-            aria-label="Close"
+            aria-label="{{ _('Close') }}"
           ></button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="meal-day-input" name="day" value="" />
           <div class="mb-3">
             <label for="meal-description-input" class="form-label"
-              >Dinner Plan</label
+              >{{ _('Dinner Plan') }}</label
             >
             <textarea
               class="form-control"
               id="meal-description-input"
               name="description"
               rows="3"
-              placeholder="e.g., Spaghetti Bolognese"
+              placeholder="{{ _('e.g., Spaghetti Bolognese') }}"
               required
             ></textarea>
           </div>
           <div class="mb-3">
             <label for="meal-notes-input" class="form-label"
-              >Notes (Recipe, Link, etc.)</label
+              >{{ _('Notes (Recipe, Link, etc.)') }}</label
             >
             <textarea
               class="form-control"
               id="meal-notes-input"
               name="notes"
               rows="5"
-              placeholder="Optional: Add a recipe link or preparation notes here."
+              placeholder="{{ _('Optional: Add a recipe link or preparation notes here.') }}"
             ></textarea>
           </div>
         </div>
@@ -103,7 +103,7 @@ content %}
             id="delete-meal-button"
             class="btn btn-outline-danger"
           >
-            Remove
+            {{ _('Remove') }}
           </button>
           <div>
             <button
@@ -111,10 +111,10 @@ content %}
               class="btn btn-secondary"
               data-bs-dismiss="modal"
             >
-              Cancel
+              {{ _('Cancel') }}
             </button>
             <button type="submit" form="meal-form" class="btn btn-primary">
-              Save
+              {{ _('Save') }}
             </button>
           </div>
         </div>

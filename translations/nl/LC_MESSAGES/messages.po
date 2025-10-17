@@ -1,0 +1,792 @@
+# Dutch translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-10-17 14:59+0200\n"
+"PO-Revision-Date: 2025-10-17 15:09+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: nl\n"
+"Language-Team: nl <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app.py:328
+msgid "Please select a space to continue."
+msgstr "Selecteer een ruimte om door te gaan."
+
+#: app.py:336
+msgid "You are not a member of the selected space, or it no longer exists."
+msgstr "U bent geen lid van de geselecteerde ruimte, of deze bestaat niet meer."
+
+#: app.py:388
+msgid "Invalid username or password"
+msgstr "Ongeldige gebruikersnaam of wachtwoord"
+
+#: app.py:403
+msgid "Username already exists."
+msgstr "Gebruikersnaam bestaat al."
+
+#: app.py:409
+msgid "Registration successful! Please log in."
+msgstr "Registratie succesvol! Log alstublieft in."
+
+#: app.py:431
+msgid "Language updated!"
+msgstr "Taal bijgewerkt!"
+
+#: app.py:459
+#, python-format
+msgid "Successfully created and selected family \"%(name)s\"!"
+msgstr "Familie \"%(name)s\" succesvol aangemaakt en geselecteerd!"
+
+#: app.py:464
+msgid "Family name cannot be empty."
+msgstr "Familienaam mag niet leeg zijn."
+
+#: app.py:478
+msgid "You are not a member of that family."
+msgstr "U bent geen lid van die familie."
+
+#: app.py:518
+msgid "Welcome! To get started, please create a private space for your household."
+msgstr "Welkom! Maak een privéruimte voor uw huishouden om te beginnen."
+
+#: app.py:535
+msgid "The family you had selected is no longer available."
+msgstr "De geselecteerde familie is niet langer beschikbaar."
+
+#: app.py:599
+#, python-format
+msgid "User \"%(username)s\" not found."
+msgstr "Gebruiker \"%(username)s\" niet gevonden."
+
+#: app.py:606
+#, python-format
+msgid "User \"%(username)s\" is already a member of this family."
+msgstr "Gebruiker \"%(username)s\" is al lid van deze familie."
+
+#: app.py:617
+#, python-format
+msgid "Successfully invited \"%(username)s\" to the family!"
+msgstr "\"%(username)s\" succesvol uitgenodigd voor de familie!"
+
+#: app.py:706
+msgid "You do not have permission to delete this list."
+msgstr "U heeft geen toestemming om deze lijst te verwijderen."
+
+#: app.py:1208
+msgid "Avatar updated successfully!"
+msgstr "Avatar succesvol bijgewerkt!"
+
+#: app.py:1210
+#, python-format
+msgid "Error uploading image: %(error)s"
+msgstr "Fout bij het uploaden van de afbeelding: %(error)s"
+
+#: app.py:1212
+msgid "No file selected."
+msgstr "Geen bestand geselecteerd."
+
+#: app.py:1227
+msgid "Incorrect old password. Please try again."
+msgstr "Oud wachtwoord is onjuist. Probeer het opnieuw."
+
+#: app.py:1235
+msgid "Your password has been updated successfully!"
+msgstr "Uw wachtwoord is succesvol bijgewerkt!"
+
+#: app.py:1367
+msgid "You do not have permission to delete this entry."
+msgstr "U heeft geen toestemming om dit item te verwijderen."
+
+#: templates/404.html:1 templates/404.html:5
+msgid "Page Not Found"
+msgstr "Pagina Niet Gevonden"
+
+#: templates/404.html:7
+msgid ""
+"Oops! The page you are looking for does not exist. It might have been\n"
+"    moved or deleted."
+msgstr ""
+"Oeps! De pagina die u zoekt bestaat niet. Deze is mogelijk\n"
+"    verplaatst of verwijderd."
+
+#: templates/404.html:11
+msgid "Go to Homepage"
+msgstr "Ga naar de startpagina"
+
+#: templates/_edit_vault_modal.html:16
+msgid "Edit Vault Entry"
+msgstr "Kluisitem Bewerken"
+
+#: templates/_edit_vault_modal.html:22 templates/base.html:402
+#: templates/dashboard.html:40 templates/meal_planner.html:69
+#: templates/profile.html:17 templates/profile.html:158 templates/vault.html:27
+#: templates/vault.html:104
+msgid "Close"
+msgstr "Sluiten"
+
+#: templates/_edit_vault_modal.html:28 templates/vault.html:110
+msgid "Category"
+msgstr "Categorie"
+
+#: templates/_edit_vault_modal.html:42 templates/calendar.html:19
+#: templates/vault.html:128
+msgid "Title"
+msgstr "Titel"
+
+#: templates/_edit_vault_modal.html:55 templates/vault.html:140
+msgid "Content"
+msgstr "Inhoud"
+
+#: templates/_edit_vault_modal.html:74 templates/base.html:373
+#: templates/dashboard.html:63 templates/meal_planner.html:114
+#: templates/profile.html:197 templates/vault.html:157
+#: templates/view_list.html:134
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: templates/_edit_vault_modal.html:77
+msgid "Save Changes"
+msgstr "Wijzigingen Opslaan"
+
+#: templates/_vault_entry.html:10
+msgid "Edit Entry"
+msgstr "Item Bewerken"
+
+#: templates/_vault_entry.html:23
+msgid "Delete Entry"
+msgstr "Item Verwijderen"
+
+#: templates/_vault_entry.html:33
+#, python-format
+msgid "Last updated by %(username)s on %(date)s"
+msgstr "Laatst bijgewerkt door %(username)s op %(date)s"
+
+#: templates/auth_base.html:6 templates/base.html:6 templates/dashboard.html:1
+#: templates/dashboard.html:4
+msgid "Family Dashboard"
+msgstr "Familie Dashboard"
+
+#: templates/auth_base.html:48 templates/base.html:47
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: templates/base.html:84
+msgid "Family Hub"
+msgstr "Familie Hub"
+
+#: templates/base.html:97 templates/home.html:22
+msgid "Lists"
+msgstr "Lijsten"
+
+#: templates/base.html:122 templates/calendar.html:1 templates/calendar.html:4
+#: templates/home.html:46
+msgid "Calendar"
+msgstr "Kalender"
+
+#: templates/base.html:134 templates/home.html:67 templates/meal_planner.html:1
+msgid "Meal Planner"
+msgstr "Maaltijdplanner"
+
+#: templates/base.html:147 templates/chores.html:1 templates/home.html:109
+msgid "Chores"
+msgstr "Klusjes"
+
+#: templates/base.html:160 templates/bulletin_board.html:1
+#: templates/bulletin_board.html:4 templates/home.html:88
+msgid "Bulletin Board"
+msgstr "Prikbord"
+
+#: templates/base.html:173 templates/home.html:131 templates/vault.html:1
+#: templates/vault.html:4
+msgid "Family Vault"
+msgstr "Familiekluis"
+
+#: templates/base.html:199
+msgid "Manage Families"
+msgstr "Ruimtes Beheren"
+
+#: templates/base.html:208
+msgid "Profile"
+msgstr "Profiel"
+
+#: templates/base.html:220
+msgid "Switch Language"
+msgstr "Taal Wijzigen"
+
+#: templates/base.html:227
+msgid "Sign out"
+msgstr "Uitloggen"
+
+#: templates/base.html:354
+msgid "Confirm Action"
+msgstr "Actie Bevestigen"
+
+#: templates/base.html:364
+msgid ""
+"Are you sure you want to proceed with this action? This cannot\n"
+"            be undone."
+msgstr ""
+"Weet u zeker dat u door wilt gaan met deze actie? Dit kan niet\n"
+"            ongedaan worden gemaakt."
+
+#: templates/base.html:376
+msgid "Confirm"
+msgstr "Bevestigen"
+
+#: templates/base.html:396
+msgid "Select Language"
+msgstr "Selecteer Taal"
+
+#: templates/base.html:406
+msgid "Please choose your preferred language."
+msgstr "Kies alstublieft uw voorkeurstaal."
+
+#: templates/bulletin_board.html:23
+msgid "Pinned Notes"
+msgstr "Vastgezette Notities"
+
+#: templates/bulletin_board.html:37 templates/bulletin_board.html:95
+msgid "Posted by"
+msgstr "Geplaatst door"
+
+#: templates/bulletin_board.html:38 templates/bulletin_board.html:96
+msgid "on"
+msgstr "op"
+
+#: templates/bulletin_board.html:40
+msgid "Pinned"
+msgstr "Vastgezet"
+
+#: templates/bulletin_board.html:54
+msgid "Unpin Note"
+msgstr "Notitie Losmaken"
+
+#: templates/bulletin_board.html:70 templates/bulletin_board.html:129
+#: templates/view_list.html:49 templates/view_list.html:93
+msgid "Delete"
+msgstr "Verwijderen"
+
+#: templates/bulletin_board.html:112
+msgid "Pin Note"
+msgstr "Notitie Vastzetten"
+
+#: templates/bulletin_board.html:142
+msgid "Add a New Note"
+msgstr "Nieuwe Notitie Toevoegen"
+
+#: templates/bulletin_board.html:153
+msgid "Type your note here..."
+msgstr "Typ hier uw notitie..."
+
+#: templates/bulletin_board.html:158
+msgid "Post Note"
+msgstr "Notitie Plaatsen"
+
+#: templates/calendar.html:12
+msgid "Add New Event"
+msgstr "Nieuw Evenement Toevoegen"
+
+#: templates/calendar.html:29
+msgid "Date"
+msgstr "Datum"
+
+#: templates/calendar.html:39
+msgid "Time"
+msgstr "Tijd"
+
+#: templates/calendar.html:49
+msgid "Add Event"
+msgstr "Evenement Toevoegen"
+
+#: templates/calendar.html:70
+msgid "at"
+msgstr "om"
+
+#: templates/calendar.html:74
+msgid "Added by"
+msgstr "Toegevoegd door"
+
+#: templates/calendar.html:89
+msgid "Delete Event"
+msgstr "Evenement Verwijderen"
+
+#: templates/calendar.html:100
+msgid "No events scheduled yet."
+msgstr "Nog geen evenementen gepland."
+
+#: templates/chore_history_grid.html:5
+msgid "No chores were assigned for this week."
+msgstr "Er zijn geen klusjes toegewezen voor deze week."
+
+#: templates/chore_history_grid.html:17 templates/chores.html:125
+#: templates/chores.html:331 templates/profile.html:122
+#, python-format
+msgid "%(username)s's avatar"
+msgstr "Avatar van %(username)s"
+
+#: templates/chore_history_grid.html:49 templates/chores.html:176
+msgid "No chores this week!"
+msgstr "Geen klusjes deze week!"
+
+#: templates/chore_history_nav.html:10 templates/chore_history_nav.html:12
+msgid "Previous Week"
+msgstr "Vorige Week"
+
+#: templates/chore_history_nav.html:15
+msgid "Navigate Weeks"
+msgstr "Navigeer Weken"
+
+#: templates/chore_history_nav.html:20 templates/chore_history_nav.html:22
+msgid "Next Week"
+msgstr "Volgende Week"
+
+#: templates/chores.html:9
+msgid "Chores Dashboard"
+msgstr "Klusjes Dashboard"
+
+#: templates/chores.html:17
+msgid "Generate for this Week"
+msgstr "Genereer voor deze Week"
+
+#: templates/chores.html:34
+msgid "This Week"
+msgstr "Deze Week"
+
+#: templates/chores.html:48
+msgid "Manage Bank"
+msgstr "Bank Beheren"
+
+#: templates/chores.html:62
+msgid "History"
+msgstr "Geschiedenis"
+
+#: templates/chores.html:77
+msgid "Family Weekly Progress"
+msgstr "Wekelijkse Voortgang Familie"
+
+#: templates/chores.html:97 templates/chores.html:220
+msgid "Points"
+msgstr "Punten"
+
+#: templates/chores.html:106 templates/chores.html:388
+msgid "No chores assigned yet!"
+msgstr "Nog geen klusjes toegewezen!"
+
+#: templates/chores.html:108
+msgid "Generate this week's chore list using the button above."
+msgstr "Genereer de klusjeslijst van deze week met de knop hierboven."
+
+#: templates/chores.html:164 templates/chores.html:370
+msgid "pts"
+msgstr "ptn"
+
+#: templates/chores.html:169 templates/chores.html:375
+msgid "Mark as complete"
+msgstr "Markeer als voltooid"
+
+#: templates/chores.html:198
+msgid "Add a New Chore"
+msgstr "Nieuw Klusje Toevoegen"
+
+#: templates/chores.html:208
+msgid "Chore Name"
+msgstr "Naam van Klusje"
+
+#: templates/chores.html:214
+msgid "e.g., Take out trash"
+msgstr "bv. Vuilnis buiten zetten"
+
+#: templates/chores.html:232
+msgid "Add to Bank"
+msgstr "Aan Bank Toevoegen"
+
+#: templates/chores.html:241
+msgid "Current Chores"
+msgstr "Huidige Klusjes"
+
+#: templates/chores.html:252
+msgid "points"
+msgstr "punten"
+
+#: templates/chores.html:268
+msgid "Delete Chore"
+msgstr "Klusje Verwijderen"
+
+#: templates/chores.html:276
+msgid "No chores have been added yet. Add one to get started!"
+msgstr "Er zijn nog geen klusjes toegevoegd. Voeg er een toe om te beginnen!"
+
+#: templates/chores.html:294
+#, python-format
+msgid "Week of %(date)s"
+msgstr "Week van %(date)s"
+
+#: templates/chores.html:312
+msgid "Your Weekly Chores"
+msgstr "Jouw Wekelijkse Klusjes"
+
+#: templates/chores.html:314
+#, python-format
+msgid "For the week of %(date)s"
+msgstr "Voor de week van %(date)s"
+
+#: templates/chores.html:336
+msgid "Your Chores"
+msgstr "Jouw Klusjes"
+
+#: templates/chores.html:390
+msgid "The family admin can generate this week's chore list."
+msgstr "De familiebeheerder kan de klusjeslijst van deze week genereren."
+
+#: templates/dashboard.html:11
+msgid "New List"
+msgstr "Nieuwe Lijst"
+
+#: templates/dashboard.html:22
+msgid "No lists yet!"
+msgstr "Nog geen lijsten!"
+
+#: templates/dashboard.html:23
+msgid "The family admin can create a new list to get started."
+msgstr "De familiebeheerder kan een nieuwe lijst maken om te beginnen."
+
+#: templates/dashboard.html:35
+msgid "Create New List"
+msgstr "Nieuwe Lijst Maken"
+
+#: templates/dashboard.html:53
+msgid "e.g., Groceries, Weekend To-Do..."
+msgstr "bv. Boodschappen, Weekend taken..."
+
+#: templates/dashboard.html:66
+msgid "Create List"
+msgstr "Lijst Maken"
+
+#: templates/families.html:1 templates/families.html:7
+msgid "Manage Your Space"
+msgstr "Beheer je Ruimte"
+
+#: templates/families.html:9
+msgid ""
+"This is where you can create or switch between your private\n"
+"        spaces."
+msgstr "Hier kunt u uw privéruimtes aanmaken of ertussen wisselen."
+
+#: templates/families.html:23
+msgid "Your Private Spaces"
+msgstr "Jouw Privéruimtes"
+
+#: templates/families.html:36
+msgid "You are not a member of any spaces yet. Create one below!"
+msgstr "Je bent nog geen lid van een ruimte. Maak er hieronder een aan!"
+
+#: templates/families.html:45
+msgid "Create a New Space"
+msgstr "Nieuwe Ruimte Maken"
+
+#: templates/families.html:51
+msgid "Space Name"
+msgstr "Naam Ruimte"
+
+#: templates/families.html:58
+msgid "e.g., The Smith Household, Mom's House"
+msgstr "bv. Huishouden Jansen, Mama's Huis"
+
+#: templates/families.html:63
+msgid "Create and Select"
+msgstr "Aanmaken en Selecteren"
+
+#: templates/home.html:1
+msgid "Home"
+msgstr "Home"
+
+#: templates/home.html:5 templates/waiting.html:5
+#, python-format
+msgid "Welcome, %(username)s!"
+msgstr "Welkom, %(username)s!"
+
+#: templates/home.html:7
+msgid "Choose a tool to get started."
+msgstr "Kies een tool om te beginnen."
+
+#: templates/home.html:24
+msgid "Create shared to-do lists and check off items together."
+msgstr "Maak gedeelde takenlijsten en vink samen items af."
+
+#: templates/home.html:48
+msgid "Manage and view all upcoming family events."
+msgstr "Beheer en bekijk alle aankomende familie-evenementen."
+
+#: templates/home.html:69
+msgid "Plan your family's meals for the week."
+msgstr "Plan de maaltijden van je familie voor de week."
+
+#: templates/home.html:90
+msgid "Leave quick notes and reminders for everyone."
+msgstr "Laat snelle notities en herinneringen achter voor iedereen."
+
+#: templates/home.html:111
+msgid "View and manage weekly chore assignments."
+msgstr "Bekijk en beheer wekelijkse klusjestoewijzingen."
+
+#: templates/home.html:133
+msgid "Access important shared family information."
+msgstr "Krijg toegang tot belangrijke gedeelde familie-informatie."
+
+#: templates/list_summary_card.html:15
+#, python-format
+msgid "%(done)s of %(total)s"
+msgstr "%(done)s van %(total)s"
+
+#: templates/list_summary_card.html:16
+msgid "item complete"
+msgid_plural "items complete"
+msgstr[0] "item voltooid"
+msgstr[1] "items voltooid"
+
+#: templates/list_summary_card.html:22
+msgid "Completed"
+msgstr "Voltooid"
+
+#: templates/login.html:1
+msgid "Login"
+msgstr "Inloggen"
+
+#: templates/login.html:6
+msgid "Please sign in"
+msgstr "Log alstublieft in"
+
+#: templates/login.html:22 templates/login.html:26 templates/register.html:20
+#: templates/register.html:23
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+#: templates/login.html:35 templates/login.html:38 templates/register.html:32
+#: templates/register.html:35
+msgid "Password"
+msgstr "Wachtwoord"
+
+#: templates/login.html:49
+msgid "Sign in"
+msgstr "Inloggen"
+
+#: templates/login.html:53
+msgid "Don't have an account?"
+msgstr "Heeft u geen account?"
+
+#: templates/login.html:54
+msgid "Register here"
+msgstr "Registreer hier"
+
+#: templates/meal_planner.html:5
+msgid "Weekly Dinner Plan"
+msgstr "Wekelijks Dinerplan"
+
+#: templates/meal_planner.html:42
+msgid "Add a meal"
+msgstr "Voeg een maaltijd toe"
+
+#: templates/meal_planner.html:64
+msgid "Edit Meal"
+msgstr "Maaltijd Bewerken"
+
+#: templates/meal_planner.html:76
+msgid "Dinner Plan"
+msgstr "Dinerplan"
+
+#: templates/meal_planner.html:83
+msgid "e.g., Spaghetti Bolognese"
+msgstr "bv. Spaghetti Bolognese"
+
+#: templates/meal_planner.html:89
+msgid "Notes (Recipe, Link, etc.)"
+msgstr "Notities (Recept, Link, etc.)"
+
+#: templates/meal_planner.html:96
+msgid "Optional: Add a recipe link or preparation notes here."
+msgstr "Optioneel: Voeg hier een receptlink of voorbereidingsnotities toe."
+
+#: templates/meal_planner.html:106
+msgid "Remove"
+msgstr "Verwijderen"
+
+#: templates/meal_planner.html:117 templates/view_list.html:60
+#: templates/view_list.html:104
+msgid "Save"
+msgstr "Opslaan"
+
+#: templates/profile.html:1 templates/profile.html:3
+msgid "My Profile"
+msgstr "Mijn Profiel"
+
+#: templates/profile.html:27
+msgid "Profile Picture"
+msgstr "Profielfoto"
+
+#: templates/profile.html:30
+msgid "User Avatar"
+msgstr "Gebruikersavatar"
+
+#: templates/profile.html:43
+msgid "Upload a new picture:"
+msgstr "Upload een nieuwe foto:"
+
+#: templates/profile.html:54
+msgid "Upload"
+msgstr "Uploaden"
+
+#: templates/profile.html:65
+msgid "Change Password"
+msgstr "Wachtwoord Wijzigen"
+
+#: templates/profile.html:69
+msgid "Old Password"
+msgstr "Oud Wachtwoord"
+
+#: templates/profile.html:81
+msgid "New Password"
+msgstr "Nieuw Wachtwoord"
+
+#: templates/profile.html:92
+msgid "Save New Password"
+msgstr "Nieuw Wachtwoord Opslaan"
+
+#: templates/profile.html:103
+msgid "Household Members"
+msgstr "Leden van het Huishouden"
+
+#: templates/profile.html:110
+msgid "Invite Member"
+msgstr "Lid Uitnodigen"
+
+#: templates/profile.html:128
+msgid "Admin"
+msgstr "Beheerder"
+
+#: templates/profile.html:152
+msgid "Invite a New Member"
+msgstr "Nieuw Lid Uitnodigen"
+
+#: templates/profile.html:168
+msgid ""
+"Select a registered user to invite to your private family\n"
+"            space. They will gain access to all shared features."
+msgstr ""
+"Selecteer een geregistreerde gebruiker om uit te nodigen voor uw privé\n"
+"            familieruimte. Zij krijgen toegang tot alle gedeelde functies."
+
+#: templates/profile.html:173
+msgid "User to Invite"
+msgstr "Uit te nodigen Gebruiker"
+
+#: templates/profile.html:183
+msgid "Choose a user..."
+msgstr "Kies een gebruiker..."
+
+#: templates/profile.html:200
+msgid "Send Invite"
+msgstr "Uitnodiging Versturen"
+
+#: templates/register.html:1 templates/register.html:46
+msgid "Register"
+msgstr "Registreren"
+
+#: templates/register.html:6
+msgid "Create an Account"
+msgstr "Account Aanmaken"
+
+#: templates/register.html:50
+msgid "Already have an account?"
+msgstr "Heeft u al een account?"
+
+#: templates/register.html:51
+msgid "Log in here"
+msgstr "Log hier in"
+
+#: templates/vault.html:11
+msgid "Add New Entry"
+msgstr "Nieuw Item Toevoegen"
+
+#: templates/vault.html:33
+msgid "The Vault is Empty"
+msgstr "De Kluis is Leeg"
+
+#: templates/vault.html:35
+msgid "The family admin can add important household information here."
+msgstr "De familiebeheerder kan hier belangrijke huishoudelijke informatie toevoegen."
+
+#: templates/vault.html:98
+msgid "Add New Vault Entry"
+msgstr "Nieuw Kluisitem Toevoegen"
+
+#: templates/vault.html:118
+msgid "e.g., Emergency Contacts"
+msgstr "bv. Noodcontacten"
+
+#: templates/vault.html:134
+msgid "e.g., Guest Wi-Fi"
+msgstr "bv. Gasten Wi-Fi"
+
+#: templates/vault.html:160
+msgid "Save Entry"
+msgstr "Item Opslaan"
+
+#: templates/view_list.html:12 templates/view_list.html:13
+msgid "Delete List"
+msgstr "Lijst Verwijderen"
+
+#: templates/view_list.html:25
+msgid "Add a new item..."
+msgstr "Voeg een nieuw item toe..."
+
+#: templates/view_list.html:26 templates/view_list.html:135
+msgid "Add Item"
+msgstr "Item Toevoegen"
+
+#: templates/view_list.html:44 templates/view_list.html:88
+msgid "Edit"
+msgstr "Bewerken"
+
+#: templates/view_list.html:72
+msgid "Completed Items"
+msgstr "Voltooide Items"
+
+#: templates/view_list.html:124
+#, python-format
+msgid "Add Item to %(list_name)s"
+msgstr "Item toevoegen aan %(list_name)s"
+
+#: templates/view_list.html:130
+msgid "New item..."
+msgstr "Nieuw item..."
+
+#: templates/waiting.html:1
+msgid "Waiting for Invite"
+msgstr "Wachten op Uitnodiging"
+
+#: templates/waiting.html:7
+msgid "Your account is ready."
+msgstr "Uw account is klaar."
+
+#: templates/waiting.html:9
+msgid ""
+"You just need to be invited into a shared space by an admin to start\n"
+"    using the app."
+msgstr ""
+"U hoeft alleen nog maar door een beheerder te worden uitgenodigd voor een "
+"gedeelde ruimte om\n"
+"    de app te gebruiken."
+
+#: templates/waiting.html:14
+msgid "Log Out"
+msgstr "Uitloggen"

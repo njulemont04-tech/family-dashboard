@@ -7,7 +7,7 @@
         class="btn btn-sm btn-outline-secondary me-2"
         data-bs-toggle="modal"
         data-bs-target="#editEntryModal-{{ entry.id }}"
-        title="Edit Entry"
+        title="{{ _('Edit Entry') }}"
       >
         <i class="bi bi-pencil-square"></i>
       </button>
@@ -20,7 +20,7 @@
         <button
           type="submit"
           class="btn btn-sm btn-outline-danger"
-          title="Delete Entry"
+          title="{{ _('Delete Entry') }}"
         >
           <i class="bi bi-trash"></i>
         </button>
@@ -30,7 +30,8 @@
   </div>
   <p class="mb-1" style="white-space: pre-wrap">{{ entry.content }}</p>
   <small class="text-muted"
-    >Last updated by {{ entry.author.username }} on {{
-    entry.updated_at.strftime('%b %d, %Y') }}</small
+    >{{ _('Last updated by %(username)s on %(date)s',
+    username=entry.author.username, date=entry.updated_at.strftime('%b %d, %Y'))
+    }}</small
   >
 </div>

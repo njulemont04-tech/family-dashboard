@@ -1,0 +1,783 @@
+# Translations template for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-10-17 14:59+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app.py:328
+msgid "Please select a space to continue."
+msgstr ""
+
+#: app.py:336
+msgid "You are not a member of the selected space, or it no longer exists."
+msgstr ""
+
+#: app.py:388
+msgid "Invalid username or password"
+msgstr ""
+
+#: app.py:403
+msgid "Username already exists."
+msgstr ""
+
+#: app.py:409
+msgid "Registration successful! Please log in."
+msgstr ""
+
+#: app.py:431
+msgid "Language updated!"
+msgstr ""
+
+#: app.py:459
+#, python-format
+msgid "Successfully created and selected family \"%(name)s\"!"
+msgstr ""
+
+#: app.py:464
+msgid "Family name cannot be empty."
+msgstr ""
+
+#: app.py:478
+msgid "You are not a member of that family."
+msgstr ""
+
+#: app.py:518
+msgid "Welcome! To get started, please create a private space for your household."
+msgstr ""
+
+#: app.py:535
+msgid "The family you had selected is no longer available."
+msgstr ""
+
+#: app.py:599
+#, python-format
+msgid "User \"%(username)s\" not found."
+msgstr ""
+
+#: app.py:606
+#, python-format
+msgid "User \"%(username)s\" is already a member of this family."
+msgstr ""
+
+#: app.py:617
+#, python-format
+msgid "Successfully invited \"%(username)s\" to the family!"
+msgstr ""
+
+#: app.py:706
+msgid "You do not have permission to delete this list."
+msgstr ""
+
+#: app.py:1208
+msgid "Avatar updated successfully!"
+msgstr ""
+
+#: app.py:1210
+#, python-format
+msgid "Error uploading image: %(error)s"
+msgstr ""
+
+#: app.py:1212
+msgid "No file selected."
+msgstr ""
+
+#: app.py:1227
+msgid "Incorrect old password. Please try again."
+msgstr ""
+
+#: app.py:1235
+msgid "Your password has been updated successfully!"
+msgstr ""
+
+#: app.py:1367
+msgid "You do not have permission to delete this entry."
+msgstr ""
+
+#: templates/404.html:1 templates/404.html:5
+msgid "Page Not Found"
+msgstr ""
+
+#: templates/404.html:7
+msgid ""
+"Oops! The page you are looking for does not exist. It might have been\n"
+"    moved or deleted."
+msgstr ""
+
+#: templates/404.html:11
+msgid "Go to Homepage"
+msgstr ""
+
+#: templates/_edit_vault_modal.html:16
+msgid "Edit Vault Entry"
+msgstr ""
+
+#: templates/_edit_vault_modal.html:22 templates/base.html:402
+#: templates/dashboard.html:40 templates/meal_planner.html:69
+#: templates/profile.html:17 templates/profile.html:158 templates/vault.html:27
+#: templates/vault.html:104
+msgid "Close"
+msgstr ""
+
+#: templates/_edit_vault_modal.html:28 templates/vault.html:110
+msgid "Category"
+msgstr ""
+
+#: templates/_edit_vault_modal.html:42 templates/calendar.html:19
+#: templates/vault.html:128
+msgid "Title"
+msgstr ""
+
+#: templates/_edit_vault_modal.html:55 templates/vault.html:140
+msgid "Content"
+msgstr ""
+
+#: templates/_edit_vault_modal.html:74 templates/base.html:373
+#: templates/dashboard.html:63 templates/meal_planner.html:114
+#: templates/profile.html:197 templates/vault.html:157
+#: templates/view_list.html:134
+msgid "Cancel"
+msgstr ""
+
+#: templates/_edit_vault_modal.html:77
+msgid "Save Changes"
+msgstr ""
+
+#: templates/_vault_entry.html:10
+msgid "Edit Entry"
+msgstr ""
+
+#: templates/_vault_entry.html:23
+msgid "Delete Entry"
+msgstr ""
+
+#: templates/_vault_entry.html:33
+#, python-format
+msgid "Last updated by %(username)s on %(date)s"
+msgstr ""
+
+#: templates/auth_base.html:6 templates/base.html:6 templates/dashboard.html:1
+#: templates/dashboard.html:4
+msgid "Family Dashboard"
+msgstr ""
+
+#: templates/auth_base.html:48 templates/base.html:47
+msgid "Dashboard"
+msgstr ""
+
+#: templates/base.html:84
+msgid "Family Hub"
+msgstr ""
+
+#: templates/base.html:97 templates/home.html:22
+msgid "Lists"
+msgstr ""
+
+#: templates/base.html:122 templates/calendar.html:1 templates/calendar.html:4
+#: templates/home.html:46
+msgid "Calendar"
+msgstr ""
+
+#: templates/base.html:134 templates/home.html:67 templates/meal_planner.html:1
+msgid "Meal Planner"
+msgstr ""
+
+#: templates/base.html:147 templates/chores.html:1 templates/home.html:109
+msgid "Chores"
+msgstr ""
+
+#: templates/base.html:160 templates/bulletin_board.html:1
+#: templates/bulletin_board.html:4 templates/home.html:88
+msgid "Bulletin Board"
+msgstr ""
+
+#: templates/base.html:173 templates/home.html:131 templates/vault.html:1
+#: templates/vault.html:4
+msgid "Family Vault"
+msgstr ""
+
+#: templates/base.html:199
+msgid "Manage Families"
+msgstr ""
+
+#: templates/base.html:208
+msgid "Profile"
+msgstr ""
+
+#: templates/base.html:220
+msgid "Switch Language"
+msgstr ""
+
+#: templates/base.html:227
+msgid "Sign out"
+msgstr ""
+
+#: templates/base.html:354
+msgid "Confirm Action"
+msgstr ""
+
+#: templates/base.html:364
+msgid ""
+"Are you sure you want to proceed with this action? This cannot\n"
+"            be undone."
+msgstr ""
+
+#: templates/base.html:376
+msgid "Confirm"
+msgstr ""
+
+#: templates/base.html:396
+msgid "Select Language"
+msgstr ""
+
+#: templates/base.html:406
+msgid "Please choose your preferred language."
+msgstr ""
+
+#: templates/bulletin_board.html:23
+msgid "Pinned Notes"
+msgstr ""
+
+#: templates/bulletin_board.html:37 templates/bulletin_board.html:95
+msgid "Posted by"
+msgstr ""
+
+#: templates/bulletin_board.html:38 templates/bulletin_board.html:96
+msgid "on"
+msgstr ""
+
+#: templates/bulletin_board.html:40
+msgid "Pinned"
+msgstr ""
+
+#: templates/bulletin_board.html:54
+msgid "Unpin Note"
+msgstr ""
+
+#: templates/bulletin_board.html:70 templates/bulletin_board.html:129
+#: templates/view_list.html:49 templates/view_list.html:93
+msgid "Delete"
+msgstr ""
+
+#: templates/bulletin_board.html:112
+msgid "Pin Note"
+msgstr ""
+
+#: templates/bulletin_board.html:142
+msgid "Add a New Note"
+msgstr ""
+
+#: templates/bulletin_board.html:153
+msgid "Type your note here..."
+msgstr ""
+
+#: templates/bulletin_board.html:158
+msgid "Post Note"
+msgstr ""
+
+#: templates/calendar.html:12
+msgid "Add New Event"
+msgstr ""
+
+#: templates/calendar.html:29
+msgid "Date"
+msgstr ""
+
+#: templates/calendar.html:39
+msgid "Time"
+msgstr ""
+
+#: templates/calendar.html:49
+msgid "Add Event"
+msgstr ""
+
+#: templates/calendar.html:70
+msgid "at"
+msgstr ""
+
+#: templates/calendar.html:74
+msgid "Added by"
+msgstr ""
+
+#: templates/calendar.html:89
+msgid "Delete Event"
+msgstr ""
+
+#: templates/calendar.html:100
+msgid "No events scheduled yet."
+msgstr ""
+
+#: templates/chore_history_grid.html:5
+msgid "No chores were assigned for this week."
+msgstr ""
+
+#: templates/chore_history_grid.html:17 templates/chores.html:125
+#: templates/chores.html:331 templates/profile.html:122
+#, python-format
+msgid "%(username)s's avatar"
+msgstr ""
+
+#: templates/chore_history_grid.html:49 templates/chores.html:176
+msgid "No chores this week!"
+msgstr ""
+
+#: templates/chore_history_nav.html:10 templates/chore_history_nav.html:12
+msgid "Previous Week"
+msgstr ""
+
+#: templates/chore_history_nav.html:15
+msgid "Navigate Weeks"
+msgstr ""
+
+#: templates/chore_history_nav.html:20 templates/chore_history_nav.html:22
+msgid "Next Week"
+msgstr ""
+
+#: templates/chores.html:9
+msgid "Chores Dashboard"
+msgstr ""
+
+#: templates/chores.html:17
+msgid "Generate for this Week"
+msgstr ""
+
+#: templates/chores.html:34
+msgid "This Week"
+msgstr ""
+
+#: templates/chores.html:48
+msgid "Manage Bank"
+msgstr ""
+
+#: templates/chores.html:62
+msgid "History"
+msgstr ""
+
+#: templates/chores.html:77
+msgid "Family Weekly Progress"
+msgstr ""
+
+#: templates/chores.html:97 templates/chores.html:220
+msgid "Points"
+msgstr ""
+
+#: templates/chores.html:106 templates/chores.html:388
+msgid "No chores assigned yet!"
+msgstr ""
+
+#: templates/chores.html:108
+msgid "Generate this week's chore list using the button above."
+msgstr ""
+
+#: templates/chores.html:164 templates/chores.html:370
+msgid "pts"
+msgstr ""
+
+#: templates/chores.html:169 templates/chores.html:375
+msgid "Mark as complete"
+msgstr ""
+
+#: templates/chores.html:198
+msgid "Add a New Chore"
+msgstr ""
+
+#: templates/chores.html:208
+msgid "Chore Name"
+msgstr ""
+
+#: templates/chores.html:214
+msgid "e.g., Take out trash"
+msgstr ""
+
+#: templates/chores.html:232
+msgid "Add to Bank"
+msgstr ""
+
+#: templates/chores.html:241
+msgid "Current Chores"
+msgstr ""
+
+#: templates/chores.html:252
+msgid "points"
+msgstr ""
+
+#: templates/chores.html:268
+msgid "Delete Chore"
+msgstr ""
+
+#: templates/chores.html:276
+msgid "No chores have been added yet. Add one to get started!"
+msgstr ""
+
+#: templates/chores.html:294
+#, python-format
+msgid "Week of %(date)s"
+msgstr ""
+
+#: templates/chores.html:312
+msgid "Your Weekly Chores"
+msgstr ""
+
+#: templates/chores.html:314
+#, python-format
+msgid "For the week of %(date)s"
+msgstr ""
+
+#: templates/chores.html:336
+msgid "Your Chores"
+msgstr ""
+
+#: templates/chores.html:390
+msgid "The family admin can generate this week's chore list."
+msgstr ""
+
+#: templates/dashboard.html:11
+msgid "New List"
+msgstr ""
+
+#: templates/dashboard.html:22
+msgid "No lists yet!"
+msgstr ""
+
+#: templates/dashboard.html:23
+msgid "The family admin can create a new list to get started."
+msgstr ""
+
+#: templates/dashboard.html:35
+msgid "Create New List"
+msgstr ""
+
+#: templates/dashboard.html:53
+msgid "e.g., Groceries, Weekend To-Do..."
+msgstr ""
+
+#: templates/dashboard.html:66
+msgid "Create List"
+msgstr ""
+
+#: templates/families.html:1 templates/families.html:7
+msgid "Manage Your Space"
+msgstr ""
+
+#: templates/families.html:9
+msgid ""
+"This is where you can create or switch between your private\n"
+"        spaces."
+msgstr ""
+
+#: templates/families.html:23
+msgid "Your Private Spaces"
+msgstr ""
+
+#: templates/families.html:36
+msgid "You are not a member of any spaces yet. Create one below!"
+msgstr ""
+
+#: templates/families.html:45
+msgid "Create a New Space"
+msgstr ""
+
+#: templates/families.html:51
+msgid "Space Name"
+msgstr ""
+
+#: templates/families.html:58
+msgid "e.g., The Smith Household, Mom's House"
+msgstr ""
+
+#: templates/families.html:63
+msgid "Create and Select"
+msgstr ""
+
+#: templates/home.html:1
+msgid "Home"
+msgstr ""
+
+#: templates/home.html:5 templates/waiting.html:5
+#, python-format
+msgid "Welcome, %(username)s!"
+msgstr ""
+
+#: templates/home.html:7
+msgid "Choose a tool to get started."
+msgstr ""
+
+#: templates/home.html:24
+msgid "Create shared to-do lists and check off items together."
+msgstr ""
+
+#: templates/home.html:48
+msgid "Manage and view all upcoming family events."
+msgstr ""
+
+#: templates/home.html:69
+msgid "Plan your family's meals for the week."
+msgstr ""
+
+#: templates/home.html:90
+msgid "Leave quick notes and reminders for everyone."
+msgstr ""
+
+#: templates/home.html:111
+msgid "View and manage weekly chore assignments."
+msgstr ""
+
+#: templates/home.html:133
+msgid "Access important shared family information."
+msgstr ""
+
+#: templates/list_summary_card.html:15
+#, python-format
+msgid "%(done)s of %(total)s"
+msgstr ""
+
+#: templates/list_summary_card.html:16
+msgid "item complete"
+msgid_plural "items complete"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/list_summary_card.html:22
+msgid "Completed"
+msgstr ""
+
+#: templates/login.html:1
+msgid "Login"
+msgstr ""
+
+#: templates/login.html:6
+msgid "Please sign in"
+msgstr ""
+
+#: templates/login.html:22 templates/login.html:26 templates/register.html:20
+#: templates/register.html:23
+msgid "Username"
+msgstr ""
+
+#: templates/login.html:35 templates/login.html:38 templates/register.html:32
+#: templates/register.html:35
+msgid "Password"
+msgstr ""
+
+#: templates/login.html:49
+msgid "Sign in"
+msgstr ""
+
+#: templates/login.html:53
+msgid "Don't have an account?"
+msgstr ""
+
+#: templates/login.html:54
+msgid "Register here"
+msgstr ""
+
+#: templates/meal_planner.html:5
+msgid "Weekly Dinner Plan"
+msgstr ""
+
+#: templates/meal_planner.html:42
+msgid "Add a meal"
+msgstr ""
+
+#: templates/meal_planner.html:64
+msgid "Edit Meal"
+msgstr ""
+
+#: templates/meal_planner.html:76
+msgid "Dinner Plan"
+msgstr ""
+
+#: templates/meal_planner.html:83
+msgid "e.g., Spaghetti Bolognese"
+msgstr ""
+
+#: templates/meal_planner.html:89
+msgid "Notes (Recipe, Link, etc.)"
+msgstr ""
+
+#: templates/meal_planner.html:96
+msgid "Optional: Add a recipe link or preparation notes here."
+msgstr ""
+
+#: templates/meal_planner.html:106
+msgid "Remove"
+msgstr ""
+
+#: templates/meal_planner.html:117 templates/view_list.html:60
+#: templates/view_list.html:104
+msgid "Save"
+msgstr ""
+
+#: templates/profile.html:1 templates/profile.html:3
+msgid "My Profile"
+msgstr ""
+
+#: templates/profile.html:27
+msgid "Profile Picture"
+msgstr ""
+
+#: templates/profile.html:30
+msgid "User Avatar"
+msgstr ""
+
+#: templates/profile.html:43
+msgid "Upload a new picture:"
+msgstr ""
+
+#: templates/profile.html:54
+msgid "Upload"
+msgstr ""
+
+#: templates/profile.html:65
+msgid "Change Password"
+msgstr ""
+
+#: templates/profile.html:69
+msgid "Old Password"
+msgstr ""
+
+#: templates/profile.html:81
+msgid "New Password"
+msgstr ""
+
+#: templates/profile.html:92
+msgid "Save New Password"
+msgstr ""
+
+#: templates/profile.html:103
+msgid "Household Members"
+msgstr ""
+
+#: templates/profile.html:110
+msgid "Invite Member"
+msgstr ""
+
+#: templates/profile.html:128
+msgid "Admin"
+msgstr ""
+
+#: templates/profile.html:152
+msgid "Invite a New Member"
+msgstr ""
+
+#: templates/profile.html:168
+msgid ""
+"Select a registered user to invite to your private family\n"
+"            space. They will gain access to all shared features."
+msgstr ""
+
+#: templates/profile.html:173
+msgid "User to Invite"
+msgstr ""
+
+#: templates/profile.html:183
+msgid "Choose a user..."
+msgstr ""
+
+#: templates/profile.html:200
+msgid "Send Invite"
+msgstr ""
+
+#: templates/register.html:1 templates/register.html:46
+msgid "Register"
+msgstr ""
+
+#: templates/register.html:6
+msgid "Create an Account"
+msgstr ""
+
+#: templates/register.html:50
+msgid "Already have an account?"
+msgstr ""
+
+#: templates/register.html:51
+msgid "Log in here"
+msgstr ""
+
+#: templates/vault.html:11
+msgid "Add New Entry"
+msgstr ""
+
+#: templates/vault.html:33
+msgid "The Vault is Empty"
+msgstr ""
+
+#: templates/vault.html:35
+msgid "The family admin can add important household information here."
+msgstr ""
+
+#: templates/vault.html:98
+msgid "Add New Vault Entry"
+msgstr ""
+
+#: templates/vault.html:118
+msgid "e.g., Emergency Contacts"
+msgstr ""
+
+#: templates/vault.html:134
+msgid "e.g., Guest Wi-Fi"
+msgstr ""
+
+#: templates/vault.html:160
+msgid "Save Entry"
+msgstr ""
+
+#: templates/view_list.html:12 templates/view_list.html:13
+msgid "Delete List"
+msgstr ""
+
+#: templates/view_list.html:25
+msgid "Add a new item..."
+msgstr ""
+
+#: templates/view_list.html:26 templates/view_list.html:135
+msgid "Add Item"
+msgstr ""
+
+#: templates/view_list.html:44 templates/view_list.html:88
+msgid "Edit"
+msgstr ""
+
+#: templates/view_list.html:72
+msgid "Completed Items"
+msgstr ""
+
+#: templates/view_list.html:124
+#, python-format
+msgid "Add Item to %(list_name)s"
+msgstr ""
+
+#: templates/view_list.html:130
+msgid "New item..."
+msgstr ""
+
+#: templates/waiting.html:1
+msgid "Waiting for Invite"
+msgstr ""
+
+#: templates/waiting.html:7
+msgid "Your account is ready."
+msgstr ""
+
+#: templates/waiting.html:9
+msgid ""
+"You just need to be invited into a shared space by an admin to start\n"
+"    using the app."
+msgstr ""
+
+#: templates/waiting.html:14
+msgid "Log Out"
+msgstr ""
+

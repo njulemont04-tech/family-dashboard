@@ -32,6 +32,7 @@ from flask_login import (
 )
 from flask_bcrypt import Bcrypt
 from functools import wraps
+from flask_babel import Babel, gettext as _
 
 # --- START: NEW WEBSOCKET IMPORTS ---
 from flask_socketio import SocketIO, emit, join_room
@@ -72,6 +73,49 @@ bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
+# --- START: NEW, EXPLICIT BABEL CONFIGURATION ---
+
+
+# --- START: REVISED BABEL CONFIGURATION FOR USER-CONTROLLED LANGUAGE ---
+
+
+# Define the language selection function first.
+def get_locale():
+    try:
+        # Priority 1: Use the language the user explicitly chose, stored in the session.
+        if "language" in session:
+            return session["language"]
+
+        # Priority 2: For logged-in users, check if they have a saved preference.
+        if current_user.is_authenticated and current_user.language:
+            # Also store it in the session for consistency.
+            session["language"] = current_user.language
+            return current_user.language
+
+        # Priority 3: As a final fallback, default to English.
+        return "en"
+
+    except RuntimeError:
+        # This handles the case when the code is run from the command line (e.g., flask db).
+        return "en"
+
+
+# Now, initialize the Babel object without the app instance
+babel = Babel()
+
+# Set the language config on the app
+app.config["LANGUAGES"] = {
+    "en": "English",
+    "fr": "Français",
+    "nl": "Nederlands",  # <-- ADD THIS LINE
+}
+
+# FINALLY, initialize Babel with the app AND pass our function directly
+babel.init_app(app, locale_selector=get_locale)
+
+# --- END: REVISED BABEL CONFIGURATION ---
+
+
 # --- START: NEW WEBSOCKET INITIALIZATION ---
 # Add async_mode='eventlet' for production compatibility
 socketio = SocketIO(app, async_mode="eventlet")
@@ -126,6 +170,7 @@ class User(UserMixin, db.Model):
         nullable=False,
         default="https://res.cloudinary.com/demo/image/upload/w_100,h_100,c_thumb,g_face,r_max/face_left.png",
     )
+    language = db.Column(db.String(5), nullable=True)  # <-- ADD THIS LINE
     # The 'families' backref is created by the Family.members relationship
     # This relationship tracks which families this user owns
     owned_families = db.relationship("Family", backref="owner", lazy=True)
@@ -284,14 +329,16 @@ def family_required(f):
     def decorated_function(*args, **kwargs):
         family_id = session.get("current_family_id")
         if not family_id:
-            flash("Please select a space to continue.", "info")
+            flash(_("Please select a space to continue."), "info")
             return redirect(url_for("families"))
 
         family = Family.query.get(family_id)
         if not family or current_user not in family.members:
             session.pop("current_family_id", None)  # Clear invalid session data
             flash(
-                "You are not a member of the selected space, or it no longer exists.",
+                _(
+                    "You are not a member of the selected space, or it no longer exists."
+                ),
                 "warning",
             )
             return redirect(url_for("families"))
@@ -317,6 +364,16 @@ def inject_today_date():
     return dict(current_day=today.day)
 
 
+# --- START: ADD THIS NEW FUNCTION ---
+@app.context_processor
+def inject_app_config():
+    """Injects the app config into all templates."""
+    return dict(app=app)
+
+
+# --- END: ADD THIS NEW FUNCTION ---
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     # This first redirect handles users who are already logged in
@@ -332,7 +389,7 @@ def login():
             # This second redirect handles users who just successfully logged in
             return redirect(url_for("dashboard"))
         else:
-            flash("Invalid username or password", "danger")
+            flash(_("Invalid username or password"), "danger")
             return render_template("login.html", username=username)
 
     return render_template("login.html")
@@ -347,13 +404,13 @@ def register():
         password = request.form.get("password")
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
-            flash("Username already exists.", "warning")
+            flash(_("Username already exists."), "warning")
             return redirect(url_for("register"))
         hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
         new_user = User(username=username, password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
-        flash("Registration successful! Please log in.", "success")
+        flash(_("Registration successful! Please log in."), "success")
         return redirect(url_for("login"))
     return render_template("register.html")
 
@@ -363,6 +420,22 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for("login"))
+
+
+@app.route("/set_language/<lang>")
+def set_language(lang=None):
+    # Check if the selected language is one of our supported languages
+    if lang in app.config["LANGUAGES"]:
+        # Store the user's choice in the session
+        session["language"] = lang
+        # If the user is logged in, also save their preference to their profile
+        if current_user.is_authenticated:
+            current_user.language = lang
+            db.session.commit()
+            flash(_("Language updated!"), "success")
+
+    # Redirect the user back to the page they were on
+    return redirect(request.referrer or url_for("home"))
 
 
 @app.route("/families")
@@ -386,10 +459,13 @@ def create_family():
         db.session.commit()
         # Automatically select the new family as the active one
         session["current_family_id"] = new_family.id
-        flash(f'Successfully created and selected family "{family_name}"!', "success")
+        flash(
+            _('Successfully created and selected family "%(name)s"!', name=family_name),
+            "success",
+        )
         return redirect(url_for("dashboard"))
     else:
-        flash("Family name cannot be empty.", "danger")
+        flash(_("Family name cannot be empty."), "danger")
         return redirect(url_for("families"))
 
 
@@ -403,7 +479,7 @@ def select_family(family_id):
         session["current_family_id"] = family.id
         return redirect(url_for("dashboard"))
     else:
-        flash("You are not a member of that family.", "danger")
+        flash(_("You are not a member of that family."), "danger")
         return redirect(url_for("families"))
 
 
@@ -442,7 +518,9 @@ def dashboard():
             # The new, secure way to check for the admin user
             if current_user.username == os.environ.get("ADMIN_USERNAME"):
                 flash(
-                    "Welcome! To get started, please create a private space for your household.",
+                    _(
+                        "Welcome! To get started, please create a private space for your household."
+                    ),
                     "info",
                 )
                 return redirect(url_for("families"))
@@ -458,7 +536,7 @@ def dashboard():
     if not current_family or current_user not in current_family.members:
         # If the family doesn't exist or user is not a member, clear the session and redirect
         session.pop("current_family_id", None)
-        flash("The family you had selected is no longer available.", "warning")
+        flash(_("The family you had selected is no longer available."), "warning")
         return redirect(url_for("families"))
 
     # The dashboard will now focus only on lists.
@@ -521,19 +599,28 @@ def invite_user():
         return redirect(url_for("families"))  # Should not happen, but good practice
 
     if not user_to_invite:
-        message = f'User "{username_to_invite}" not found.'
+        # <--- TRANSLATED
+        message = _('User "%(username)s" not found.', username=username_to_invite)
         if is_ajax:
             return json_response(False, message)
         flash(message, "danger")
     elif user_to_invite in family.members:
-        message = f'User "{username_to_invite}" is already a member of this family.'
+        # <--- TRANSLATED
+        message = _(
+            'User "%(username)s" is already a member of this family.',
+            username=username_to_invite,
+        )
         if is_ajax:
             return json_response(False, message)
         flash(message, "info")
     else:
         family.members.append(user_to_invite)
         db.session.commit()
-        message = f'Successfully invited "{username_to_invite}" to the family!'
+        # <--- TRANSLATED
+        message = _(
+            'Successfully invited "%(username)s" to the family!',
+            username=username_to_invite,
+        )
         if is_ajax:
             return json_response(True, message)
         flash(message, "success")
@@ -620,7 +707,7 @@ def delete_list():
     if is_ajax:
         return jsonify({"success": False, "message": "Permission denied."}), 403
     else:
-        flash("You do not have permission to delete this list.", "danger")
+        flash(_("You do not have permission to delete this list."), "danger")
         return redirect(url_for("dashboard"))
 
 
@@ -1122,11 +1209,11 @@ def upload_avatar():
                 )
                 current_user.avatar_url = upload_result["secure_url"]
                 db.session.commit()
-                flash("Avatar updated successfully!", "success")
+                flash(_("Avatar updated successfully!"), "success")
             except Exception as e:
-                flash(f"Error uploading image: {e}", "danger")
+                flash(_("Error uploading image: %(error)s", error=e), "danger")
         else:
-            flash("No file selected.", "warning")
+            flash(_("No file selected."), "warning")
     return redirect(url_for("profile"))
 
 
@@ -1141,7 +1228,7 @@ def change_password():
 
     # Check if the old password is correct
     if not bcrypt.check_password_hash(current_user.password_hash, old_password):
-        flash("Incorrect old password. Please try again.", "danger")
+        flash(_("Incorrect old password. Please try again."), "danger")
         return redirect(url_for("profile"))
 
     # Hash the new password and update the user
@@ -1149,7 +1236,7 @@ def change_password():
     current_user.password_hash = hashed_password
     db.session.commit()
 
-    flash("Your password has been updated successfully!", "success")
+    flash(_("Your password has been updated successfully!"), "success")
     return redirect(url_for("profile"))
 
 
@@ -1281,7 +1368,7 @@ def delete_vault_entry(current_family):
         # For AJAX, return a JSON error
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return jsonify({"success": False, "message": "Permission denied."}), 403
-        flash("You do not have permission to delete this entry.", "danger")
+        flash(_("You do not have permission to delete this entry."), "danger")
         return redirect(url_for("vault"))
 
     entry_id = request.form.get("entry_id")

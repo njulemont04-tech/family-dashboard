@@ -1,6 +1,6 @@
-{% extends 'base.html' %} {% block title %}My Profile{% endblock %} {% block
-content %}
-<h1 class="mb-4">My Profile</h1>
+{% extends 'base.html' %} {% block title %}{{ _('My Profile') }}{% endblock %}
+{% block content %}
+<h1 class="mb-4">{{ _('My Profile') }}</h1>
 
 <!-- Flash Messages -->
 {% with messages = get_flashed_messages(with_categories=true) %} {% if messages
@@ -14,7 +14,7 @@ content %}
     type="button"
     class="btn-close"
     data-bs-dismiss="alert"
-    aria-label="Close"
+    aria-label="{{ _('Close') }}"
   ></button>
 </div>
 {% endfor %} {% endif %} {% endwith %}
@@ -24,10 +24,10 @@ content %}
   <div class="col-lg-4">
     <div class="card">
       <div class="card-body text-center">
-        <h5 class="card-title">Profile Picture</h5>
+        <h5 class="card-title">{{ _('Profile Picture') }}</h5>
         <img
           src="{{ current_user.avatar_url }}"
-          alt="User Avatar"
+          alt="{{ _('User Avatar') }}"
           class="img-fluid rounded-circle mb-3"
           style="width: 150px; height: 150px; object-fit: cover"
         />
@@ -39,7 +39,9 @@ content %}
           enctype="multipart/form-data"
         >
           <div class="mb-3">
-            <label for="avatar" class="form-label">Upload a new picture:</label>
+            <label for="avatar" class="form-label"
+              >{{ _('Upload a new picture:') }}</label
+            >
             <input
               class="form-control"
               type="file"
@@ -48,7 +50,9 @@ content %}
               required
             />
           </div>
-          <button type="submit" class="btn btn-primary">Upload</button>
+          <button type="submit" class="btn btn-primary">
+            {{ _('Upload') }}
+          </button>
         </form>
       </div>
     </div>
@@ -58,10 +62,12 @@ content %}
   <div class="col-lg-8">
     <div class="card mb-4">
       <div class="card-body">
-        <h5 class="card-title">Change Password</h5>
+        <h5 class="card-title">{{ _('Change Password') }}</h5>
         <form action="{{ url_for('change_password') }}" method="POST">
           <div class="mb-3">
-            <label for="old_password" class="form-label">Old Password</label>
+            <label for="old_password" class="form-label"
+              >{{ _('Old Password') }}</label
+            >
             <input
               type="password"
               class="form-control"
@@ -71,7 +77,9 @@ content %}
             />
           </div>
           <div class="mb-3">
-            <label for="new_password" class="form-label">New Password</label>
+            <label for="new_password" class="form-label"
+              >{{ _('New Password') }}</label
+            >
             <input
               type="password"
               class="form-control"
@@ -81,7 +89,7 @@ content %}
             />
           </div>
           <button type="submit" class="btn btn-success">
-            Save New Password
+            {{ _('Save New Password') }}
           </button>
         </form>
       </div>
@@ -92,14 +100,14 @@ content %}
       <div
         class="card-header d-flex justify-content-between align-items-center"
       >
-        <h5 class="mb-0">Household Members</h5>
+        <h5 class="mb-0">{{ _('Household Members') }}</h5>
         {% if current_user.id == current_family.owner_id %}
         <button
           class="btn btn-sm btn-primary"
           data-bs-toggle="modal"
           data-bs-target="#inviteUserModal"
         >
-          <i class="bi bi-person-plus-fill me-1"></i> Invite Member
+          <i class="bi bi-person-plus-fill me-1"></i> {{ _('Invite Member') }}
         </button>
         {% endif %}
       </div>
@@ -111,13 +119,13 @@ content %}
             class="rounded-circle me-3"
             width="40"
             height="40"
-            alt="{{ member.username }}'s avatar"
+            alt="{{ _('%(username)s\'s avatar', username=member.username) }}"
           />
           <div>
             <strong>{{ member.username }}</strong>
             {% if member.id == current_family.owner_id %}<span
               class="badge bg-secondary ms-2"
-              >Admin</span
+              >{{ _('Admin') }}</span
             >{% endif %}
           </div>
         </li>
@@ -141,13 +149,13 @@ content %}
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="inviteUserModalLabel">
-          Invite a New Member
+          {{ _('Invite a New Member') }}
         </h5>
         <button
           type="button"
           class="btn-close"
           data-bs-dismiss="modal"
-          aria-label="Close"
+          aria-label="{{ _('Close') }}"
         ></button>
       </div>
       <form
@@ -157,12 +165,12 @@ content %}
       >
         <div class="modal-body">
           <p>
-            Select a registered user to invite to your private family space.
-            They will gain access to all shared features.
+            {{ _('Select a registered user to invite to your private family
+            space. They will gain access to all shared features.') }}
           </p>
           <div class="mb-3">
             <label for="invite-user-select" class="form-label"
-              >User to Invite</label
+              >{{ _('User to Invite') }}</label
             >
             <select
               class="form-select"
@@ -171,7 +179,9 @@ content %}
               required
             >
               <!-- Options will be populated by JavaScript -->
-              <option value="" disabled selected>Choose a user...</option>
+              <option value="" disabled selected>
+                {{ _('Choose a user...') }}
+              </option>
               {% for user in inviteable_users %}
               <option value="{{ user.username }}">{{ user.username }}</option>
               {% endfor %}
@@ -184,9 +194,11 @@ content %}
             class="btn btn-secondary"
             data-bs-dismiss="modal"
           >
-            Cancel
+            {{ _('Cancel') }}
           </button>
-          <button type="submit" class="btn btn-primary">Send Invite</button>
+          <button type="submit" class="btn btn-primary">
+            {{ _('Send Invite') }}
+          </button>
         </div>
       </form>
     </div>

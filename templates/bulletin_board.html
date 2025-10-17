@@ -1,7 +1,7 @@
-{% extends 'base.html' %} {% block title %}Bulletin Board{% endblock %} {% block
-content %}
+{% extends 'base.html' %} {% block title %}{{ _('Bulletin Board') }}{% endblock
+%} {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="mb-0">Bulletin Board</h1>
+  <h1 class="mb-0">{{ _('Bulletin Board') }}</h1>
 </div>
 
 <div class="row">
@@ -20,7 +20,7 @@ content %}
       %}
     >
       <h4 class="mb-3">
-        <i class="bi bi-pin-angle-fill me-2"></i>Pinned Notes
+        <i class="bi bi-pin-angle-fill me-2"></i>{{ _('Pinned Notes') }}
       </h4>
       <div id="pinned-notes-list">
         {% if pinned_notes %} {% for note in pinned_notes %}
@@ -34,9 +34,10 @@ content %}
             <div>
               <p class="card-text fs-5">{{ note.content }}</p>
               <p class="card-subtitle text-muted" style="font-size: 0.8rem">
-                Posted by <strong>{{ note.author.username }}</strong> on {{
+                {{ _('Posted by') }}
+                <strong>{{ note.author.username }}</strong> {{ _('on') }} {{
                 note.timestamp.strftime('%b %d, %Y at %I:%M %p') }}
-                <span class="badge bg-primary ms-2">Pinned</span>
+                <span class="badge bg-primary ms-2">{{ _('Pinned') }}</span>
               </p>
             </div>
             <div class="d-flex align-items-start">
@@ -50,7 +51,7 @@ content %}
                 <button
                   type="submit"
                   class="btn btn-sm btn-outline-primary"
-                  title="Unpin Note"
+                  title="{{ _('Unpin Note') }}"
                 >
                   <i class="bi bi-pin-angle-fill"></i>
                 </button>
@@ -66,7 +67,7 @@ content %}
                 <button
                   type="submit"
                   class="btn-close"
-                  aria-label="Delete"
+                  aria-label="{{ _('Delete') }}"
                 ></button>
               </form>
               {% endif %}
@@ -91,7 +92,8 @@ content %}
           <div>
             <p class="card-text fs-5">{{ note.content }}</p>
             <p class="card-subtitle text-muted" style="font-size: 0.8rem">
-              Posted by <strong>{{ note.author.username }}</strong> on {{
+              {{ _('Posted by') }}
+              <strong>{{ note.author.username }}</strong> {{ _('on') }} {{
               note.timestamp.strftime('%b %d, %Y at %I:%M %p') }}
             </p>
           </div>
@@ -107,7 +109,7 @@ content %}
               <button
                 type="submit"
                 class="btn btn-sm btn-outline-primary"
-                title="Pin Note"
+                title="{{ _('Pin Note') }}"
               >
                 <i class="bi bi-pin-angle-fill"></i>
               </button>
@@ -124,7 +126,7 @@ content %}
               <button
                 type="submit"
                 class="btn-close"
-                aria-label="Delete"
+                aria-label="{{ _('Delete') }}"
               ></button>
             </form>
             {% endif %}
@@ -137,7 +139,7 @@ content %}
   <div class="col-md-4">
     <div class="card">
       <div class="card-body">
-        <h5 class="card-title">Add a New Note</h5>
+        <h5 class="card-title">{{ _('Add a New Note') }}</h5>
         <form
           action="{{ url_for('add_note') }}"
           method="POST"
@@ -148,11 +150,13 @@ content %}
               name="content"
               class="form-control"
               rows="4"
-              placeholder="Type your note here..."
+              placeholder="{{ _('Type your note here...') }}"
               required
             ></textarea>
           </div>
-          <button type="submit" class="btn btn-success w-100">Post Note</button>
+          <button type="submit" class="btn btn-success w-100">
+            {{ _('Post Note') }}
+          </button>
         </form>
       </div>
     </div>

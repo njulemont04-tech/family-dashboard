@@ -1,8 +1,10 @@
-{% extends 'base.html' %} {% block title %} Home - {{ current_family.name }} {%
-endblock %} {% block content %}
+{% extends 'base.html' %} {% block title %} {{ _('Home') }} - {{
+current_family.name }} {% endblock %} {% block content %}
 <div class="text-center">
-  <h1 class="display-5 mb-3">Welcome, {{ current_user.username }}!</h1>
-  <p class="lead text-muted mb-5">Choose a tool to get started.</p>
+  <h1 class="display-5 mb-3">
+    {{ _('Welcome, %(username)s!', username=current_user.username) }}
+  </h1>
+  <p class="lead text-muted mb-5">{{ _('Choose a tool to get started.') }}</p>
 </div>
 
 <div class="row g-4 justify-content-center">
@@ -17,9 +19,9 @@ endblock %} {% block content %}
             class="hub-icon me-4"
           />
           <div>
-            <h4 class="card-title mb-1">Lists</h4>
+            <h4 class="card-title mb-1">{{ _('Lists') }}</h4>
             <p class="card-text text-muted mb-0">
-              Create shared to-do lists and check off items together.
+              {{ _('Create shared to-do lists and check off items together.') }}
             </p>
           </div>
         </div>
@@ -41,9 +43,9 @@ endblock %} {% block content %}
             <span class="hub-icon-day">{{ current_day }}</span>
           </div>
           <div>
-            <h4 class="card-title mb-1">Calendar</h4>
+            <h4 class="card-title mb-1">{{ _('Calendar') }}</h4>
             <p class="card-text text-muted mb-0">
-              Manage and view all upcoming family events.
+              {{ _('Manage and view all upcoming family events.') }}
             </p>
           </div>
         </div>
@@ -62,9 +64,9 @@ endblock %} {% block content %}
             class="hub-icon me-4"
           />
           <div>
-            <h4 class="card-title mb-1">Meal Planner</h4>
+            <h4 class="card-title mb-1">{{ _('Meal Planner') }}</h4>
             <p class="card-text text-muted mb-0">
-              Plan your family's meals for the week.
+              {{ _("Plan your family's meals for the week.") }}
             </p>
           </div>
         </div>
@@ -83,9 +85,9 @@ endblock %} {% block content %}
             class="hub-icon me-4"
           />
           <div>
-            <h4 class="card-title mb-1">Bulletin Board</h4>
+            <h4 class="card-title mb-1">{{ _('Bulletin Board') }}</h4>
             <p class="card-text text-muted mb-0">
-              Leave quick notes and reminders for everyone.
+              {{ _('Leave quick notes and reminders for everyone.') }}
             </p>
           </div>
         </div>
@@ -104,9 +106,9 @@ endblock %} {% block content %}
             class="hub-icon me-4"
           />
           <div>
-            <h4 class="card-title mb-1">Chores</h4>
+            <h4 class="card-title mb-1">{{ _('Chores') }}</h4>
             <p class="card-text text-muted mb-0">
-              View and manage weekly chore assignments.
+              {{ _('View and manage weekly chore assignments.') }}
             </p>
           </div>
         </div>
@@ -126,9 +128,9 @@ endblock %} {% block content %}
             class="hub-icon me-4"
           />
           <div>
-            <h4 class="card-title mb-1">Family Vault</h4>
+            <h4 class="card-title mb-1">{{ _('Family Vault') }}</h4>
             <p class="card-text text-muted mb-0">
-              Access important shared family information.
+              {{ _('Access important shared family information.') }}
             </p>
           </div>
         </div>

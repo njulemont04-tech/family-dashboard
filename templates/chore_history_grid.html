@@ -1,7 +1,9 @@
 {% if not sorted_assignments or not sorted_assignments[0][1] %}
 <div class="card">
   <div class="card-body text-center">
-    <h5 class="card-title">No chores were assigned for this week.</h5>
+    <h5 class="card-title">
+      {{ _('No chores were assigned for this week.') }}
+    </h5>
   </div>
 </div>
 {% else %}
@@ -12,7 +14,7 @@
       <div class="card-header d-flex align-items-center">
         <img
           src="{{ member.avatar_url }}"
-          alt="{{ member.username }}'s avatar"
+          alt="{{ _('%(username)s\'s avatar', username=member.username) }}"
           class="rounded-circle me-2"
           width="32"
           height="32"
@@ -44,7 +46,7 @@
         </div>
         {% endfor %} {% else %}
         <div class="list-group-item text-muted fst-italic">
-          No chores this week!
+          {{ _('No chores this week!') }}
         </div>
         {% endif %}
       </div>
