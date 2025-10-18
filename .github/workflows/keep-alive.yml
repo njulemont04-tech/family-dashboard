@@ -2,8 +2,8 @@ name: Keep-Alive Ping
 
 on:
   schedule:
-    # This runs the job every 15 minutes
-    - cron: "*/15 * * * *"
+    # This runs the job every 14 minutes
+    - cron: "*/14 * * * *"
 
 jobs:
   ping:
