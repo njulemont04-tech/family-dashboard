@@ -1,7 +1,3 @@
-import eventlet
-
-eventlet.monkey_patch()
-
 import os
 import cloudinary
 import cloudinary.uploader
@@ -2078,4 +2074,7 @@ def page_not_found(e):
 
 if __name__ == "__main__":
     # This block is for LOCAL development only.
+    import eventlet
+
+    eventlet.monkey_patch()
     socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
