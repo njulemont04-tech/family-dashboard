@@ -17,8 +17,8 @@
   <a
     href="{{ url_for('api_chore_history', start_date_str=next_week_date.strftime('%Y-%m-%d')) }}"
     class="btn btn-outline-secondary history-nav-link {% if not show_next_week %}disabled{% endif %}"
-    aria-label="{{ _('Next Week') }}"
+    aria-label="{{ _('Next Chore Week') }}"
   >
-    {{ _('Next Week') }} <i class="bi bi-arrow-right"></i>
+    {{ _('Next Chore Week') }} <i class="bi bi-arrow-right"></i>
   </a>
 </nav>
