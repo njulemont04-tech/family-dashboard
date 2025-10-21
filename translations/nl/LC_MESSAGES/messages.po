@@ -83,7 +83,6 @@ msgid "You do not have permission to delete this list."
 msgstr "U heeft geen toestemming om deze lijst te verwijderen."
 
 #: app.py:995
-#, fuzzy
 msgid "You do not have permission to edit this event."
 msgstr "U heeft geen toestemming om dit item te verwijderen."
 
@@ -296,16 +295,14 @@ msgid "Post Note"
 msgstr "Notitie Plaatsen"
 
 #: templates/calendar.html:12
-#, fuzzy
 msgid "Previous"
-msgstr "Vorige Week"
+msgstr "Vorige"
 
 #: templates/calendar.html:15
 msgid "Today"
 msgstr "Vandaag"
 
 #: templates/calendar.html:21
-#, fuzzy
 msgid "Next"
 msgstr "Volgende"
 
@@ -342,7 +339,6 @@ msgid "Add Event"
 msgstr "Evenement Toevoegen"
 
 #: templates/calendar.html:115
-#, fuzzy
 msgid "Event Title"
 msgstr "Titel"
 
@@ -390,7 +386,6 @@ msgid "Navigate Weeks"
 msgstr "Navigeer Weken"
 
 #: templates/chore_history_nav.html:20 templates/chore_history_nav.html:22
-#, fuzzy
 msgid "Next Chore Week"
 msgstr "Volgende Week"
 

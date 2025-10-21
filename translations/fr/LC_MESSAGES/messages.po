@@ -85,7 +85,6 @@ msgid "You do not have permission to delete this list."
 msgstr "Vous n'avez pas la permission de supprimer cette liste."
 
 #: app.py:995
-#, fuzzy
 msgid "You do not have permission to edit this event."
 msgstr "Vous n'avez pas la permission de supprimer cette entrée."
 
@@ -298,16 +297,14 @@ msgid "Post Note"
 msgstr "Publier la note"
 
 #: templates/calendar.html:12
-#, fuzzy
 msgid "Previous"
-msgstr "Semaine précédente"
+msgstr "Précédent"
 
 #: templates/calendar.html:15
 msgid "Today"
 msgstr "Aujourd'hui"
 
 #: templates/calendar.html:21
-#, fuzzy
 msgid "Next"
 msgstr "Suivant"
 
@@ -344,7 +341,6 @@ msgid "Add Event"
 msgstr "Ajouter l'événement"
 
 #: templates/calendar.html:115
-#, fuzzy
 msgid "Event Title"
 msgstr "Titre"
 
@@ -392,7 +388,6 @@ msgid "Navigate Weeks"
 msgstr "Naviguer entre les semaines"
 
 #: templates/chore_history_nav.html:20 templates/chore_history_nav.html:22
-#, fuzzy
 msgid "Next Chore Week"
 msgstr "Semaine suivante"
 
