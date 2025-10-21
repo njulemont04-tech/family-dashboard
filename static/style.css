@@ -665,3 +665,91 @@ h6 {
   /* Smooth transition for the color change */
   transition: color 0.3s ease-in-out, opacity 0.3s ease-in-out;
 }
+
+/* Styles for past, non-editable days in the meal planner */
+.meal-day-card.past-day {
+  background-color: #f8f9fa; /* A standard Bootstrap light grey */
+}
+
+.meal-day-card.past-day .card-body {
+  cursor: not-allowed;
+}
+
+/* Make the text and icons inside past cards slightly faded */
+.meal-day-card.past-day .card-body,
+.meal-day-card.past-day .card-header {
+  opacity: 0.7;
+}
+
+/* --- Calendar Grid Styles --- */
+.calendar-grid th {
+  height: 40px;
+  vertical-align: middle;
+}
+
+.calendar-day {
+  height: 120px;
+  vertical-align: top;
+  padding: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.calendar-day:hover {
+  background-color: #f8f9fa; /* Light grey on hover */
+}
+
+.calendar-day .day-number {
+  text-align: right;
+  font-size: 0.9em;
+  font-weight: bold;
+  color: #6c757d;
+}
+
+.calendar-day.other-month {
+  background-color: #f8f9fa;
+}
+
+.calendar-day.other-month .day-number,
+.calendar-day.other-month .events-container {
+  opacity: 0.5;
+}
+
+.calendar-day.today {
+  border: 2px solid #0d6efd;
+}
+
+.calendar-day.today .day-number {
+  background-color: #0d6efd; /* Bootstrap primary blue */
+  color: white;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  text-align: center;
+  line-height: 28px;
+  float: right;
+}
+
+.events-container {
+  margin-top: 5px;
+  font-size: 0.85em;
+  max-height: 70px;
+  overflow-y: auto;
+}
+
+.event-badge {
+  background-color: #0d6efd; /* Bootstrap primary blue */
+  color: white;
+  padding: 3px 6px;
+  border-radius: 0.25rem;
+  margin-bottom: 4px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.event-badge .event-time {
+  font-weight: 600;
+  margin-right: 5px;
+}

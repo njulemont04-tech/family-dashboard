@@ -194,17 +194,54 @@ document.addEventListener("DOMContentLoaded", () => {
       .getElementById(`item-${data.item_id}`)
       ?.classList.toggle("done", data.done_status)
   );
+  // --- Real-time updates for the new calendar grid ---
   socket.on("event_added", (data) => {
-    const eventsList = document.getElementById("events-list");
-    if (eventsList && !document.getElementById(`event-${data.event.id}`)) {
-      eventsList.querySelector(".alert")?.remove();
-      const newEventElement = createEventElement(data.event);
-      eventsList.prepend(newEventElement);
+    // Check if we are on the calendar page
+    if (document.querySelector(".calendar-grid")) {
+      const event = data.event;
+      const cell = document.querySelector(
+        `.calendar-day[data-date="${event.date}"]`
+      );
+
+      // Ensure the cell exists and the event badge isn't already there
+      if (cell && !document.getElementById(`event-${event.id}`)) {
+        const eventContainer = cell.querySelector(".events-container");
+
+        // Create the new event badge element
+        const newEventBadge = document.createElement("div");
+
+        // --- START OF FIX: Add ALL necessary attributes ---
+        newEventBadge.className = "event-badge";
+        newEventBadge.id = `event-${event.id}`;
+
+        // Attributes for triggering the view modal
+        newEventBadge.setAttribute("data-bs-toggle", "modal");
+        newEventBadge.setAttribute("data-bs-target", "#viewEventModal");
+
+        // Attributes to hold the event data for the modal's JavaScript
+        newEventBadge.dataset.eventId = event.id;
+        newEventBadge.dataset.eventTitle = event.title;
+        // Use the pre-formatted 12-hour time from the server for consistency
+        newEventBadge.dataset.eventTime = event.formatted_time;
+        newEventBadge.dataset.eventAuthor = event.author.username;
+        newEventBadge.dataset.eventAuthorId = event.author.id;
+
+        // Set the inner HTML for display
+        newEventBadge.innerHTML = `<span class="event-time">${event.time.substring(
+          0,
+          5
+        )}</span> ${event.title}`;
+        // --- END OF FIX ---
+
+        eventContainer.appendChild(newEventBadge);
+      }
     }
   });
-  socket.on("event_deleted", (data) =>
-    document.getElementById(`event-${data.event_id}`)?.remove()
-  );
+
+  socket.on("event_deleted", (data) => {
+    // This will work for both the old list view and the new grid view
+    document.getElementById(`event-${data.event_id}`)?.remove();
+  });
   socket.on("note_added", (data) => {
     const notesList = document.getElementById("notes-list");
     if (notesList && !document.getElementById(`note-${data.note.id}`)) {
@@ -898,6 +935,32 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = event.target.closest("form");
     if (!form) return;
 
+    const handleAddEventGrid = (form, data) => {
+      if (data.success) {
+        form.reset();
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("addEventModal")
+        );
+        modal.hide();
+        // Real-time event 'event_added' will handle updating the UI for everyone
+      } else {
+        showToast(data.message || "Failed to add event.", "danger");
+      }
+    };
+
+    const handleEditEventGrid = (form, data) => {
+      if (data.success) {
+        form.reset();
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("addEventModal")
+        );
+        modal.hide();
+        // The 'event_updated' socket event will handle the UI update
+      } else {
+        showToast(data.message || "Failed to update event.", "danger");
+      }
+    };
+
     // A map of form selectors to their specific handler functions
     const formActions = {
       // List Forms
@@ -916,7 +979,8 @@ document.addEventListener("DOMContentLoaded", () => {
       ".note-delete-form": handleDeleteNote,
       ".note-pin-form": handlePinNote,
       // Event Forms
-      "#add-event-form": handleAddEvent,
+      "#add-event-form": handleAddEventGrid, // Use the new handler for the grid
+      'form[action^="/edit_event/"]': handleEditEventGrid,
       ".event-delete-form": handleDeleteEvent,
       // Meal Forms
       "#delete-meal-form": handleDeleteMealOptimistic,
@@ -946,6 +1010,141 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
   });
+
+  // --- START: NEW CALENDAR GRID LOGIC ---
+
+  const addEventModalElement = document.getElementById("addEventModal");
+  if (addEventModalElement) {
+    const addEventModal = new bootstrap.Modal(addEventModalElement);
+    const dateInput = document.getElementById("event-date-input");
+    const modalTitle = document.getElementById("addEventModalLabel");
+
+    // 1. Populate modal with the date of the clicked cell
+    addEventModalElement.addEventListener("show.bs.modal", function (event) {
+      const cell = event.relatedTarget;
+      // Exit if modal was triggered by something other than a calendar cell
+      if (!cell || !cell.dataset.date) return;
+
+      const date = cell.dataset.date;
+      dateInput.value = date;
+
+      const dateObj = new Date(date + "T00:00:00"); // Add time to avoid timezone issues
+      // Use a simple, reliable format for the title
+      modalTitle.textContent = `Add Event for ${date}`;
+
+      // Reset form fields
+      document.getElementById("add-event-form").reset();
+    });
+  }
+
+  // Reset the Add/Edit modal to its "Add" state when hidden
+  const addEventModalToReset = document.getElementById("addEventModal");
+  if (addEventModalToReset) {
+    addEventModalToReset.addEventListener("hidden.bs.modal", () => {
+      const form = document.getElementById("add-event-form");
+      const modalLabel = document.getElementById("addEventModalLabel");
+      const submitBtn = form.querySelector('button[type="submit"]');
+
+      form.action = "/add_event";
+      modalLabel.textContent = "Add Event";
+      submitBtn.textContent = "Add Event";
+      form.reset();
+    });
+  }
+
+  // --- START: NEW VIEW/DELETE EVENT MODAL LOGIC ---
+
+  const viewEventModalElement = document.getElementById("viewEventModal");
+  if (viewEventModalElement) {
+    const viewEventModal = new bootstrap.Modal(viewEventModalElement);
+    const titleEl = document.getElementById("view-event-title");
+    const timeEl = document.getElementById("view-event-time");
+    const authorEl = document.getElementById("view-event-author");
+    const deleteBtn = document.getElementById("delete-event-btn");
+    const deleteForm = document.querySelector(".event-delete-form");
+    const deleteInput = document.getElementById("delete-event-id-input");
+
+    // 1. Populate the modal with data from the clicked event badge
+    viewEventModalElement.addEventListener("show.bs.modal", (event) => {
+      const badge = event.relatedTarget;
+      if (!badge) return;
+
+      // Store data on the modal element itself for easy access by other listeners
+      const dataset = badge.dataset;
+      viewEventModalElement.dataset.eventId = dataset.eventId;
+      viewEventModalElement.dataset.eventTitle = dataset.eventTitle;
+      viewEventModalElement.dataset.eventTime = dataset.eventTime;
+      viewEventModalElement.dataset.eventAuthor = dataset.eventAuthor;
+      viewEventModalElement.dataset.eventAuthorId = dataset.eventAuthorId;
+      // The date comes from the parent cell
+      viewEventModalElement.dataset.eventDate =
+        badge.closest(".calendar-day").dataset.date;
+
+      // Update the modal's content
+      titleEl.textContent = dataset.eventTitle;
+      timeEl.textContent = dataset.eventTime;
+      authorEl.textContent = dataset.eventAuthor;
+
+      deleteInput.value = dataset.eventId;
+
+      // Show/hide the entire actions div based on authorship
+      const authorActions = document.getElementById("event-author-actions");
+      const currentUserId = document.body.dataset.userId;
+      if (currentUserId === dataset.eventAuthorId) {
+        authorActions.style.display = "block";
+      } else {
+        authorActions.style.display = "none";
+      }
+    });
+
+    // 2. Handle the "Delete Event" button click
+    deleteBtn.addEventListener("click", () => {
+      // This reuses your existing confirmation modal logic perfectly.
+      // We tell the confirmation modal which form to submit when confirmed.
+      formToSubmit = deleteForm;
+      callbackToExecute = handleDeleteEvent; // Your existing handler
+
+      // Hide the view modal before showing the confirmation modal
+      viewEventModal.hide();
+      confirmationModal.show();
+    });
+
+    const editBtn = document.getElementById("edit-event-btn");
+
+    editBtn.addEventListener("click", () => {
+      // Get the "Add/Edit" modal elements
+      const addEventModal = bootstrap.Modal.getInstance(
+        document.getElementById("addEventModal")
+      );
+      const addEventForm = document.getElementById("add-event-form");
+      const addEventModalLabel = document.getElementById("addEventModalLabel");
+      const addEventSubmitBtn = addEventForm.querySelector(
+        'button[type="submit"]'
+      );
+
+      // Get data stored on the view modal
+      const dataset = viewEventModalElement.dataset;
+      const time24h = new Date("1970-01-01 " + dataset.eventTime)
+        .toTimeString()
+        .substring(0, 5);
+
+      // Pre-fill the form
+      addEventForm.querySelector("#event-title").value = dataset.eventTitle;
+      addEventForm.querySelector("#event-time").value = time24h;
+      addEventForm.querySelector("#event-date-input").value = dataset.eventDate;
+
+      // Change the form's action and the modal's title/button text
+      addEventForm.action = `/edit_event/${dataset.eventId}`;
+      addEventModalLabel.textContent = "Edit Event";
+      addEventSubmitBtn.textContent = "Update Event";
+
+      // Close the view modal and open the edit modal
+      bootstrap.Modal.getInstance(viewEventModalElement).hide();
+      addEventModal.show();
+    });
+  }
+
+  // --- END: NEW VIEW/DELETE EVENT MODAL LOGIC ---
 
   // --- MEAL PLANNER MODAL LOGIC ---
   const mealModalElement = document.getElementById("mealModal");
@@ -1019,11 +1218,13 @@ document.addEventListener("DOMContentLoaded", () => {
     mealForm.addEventListener("submit", (e) => {
       e.preventDefault();
 
+      // Get all form values, including the new hidden one
       const day = mealDayInput.value;
       const description = mealDescriptionInput.value;
       const notes = mealNotesInput.value;
+      const week_of = document.getElementById("meal-week-of-input").value; // <-- ADD THIS LINE
 
-      // Optimistic UI Update
+      // Optimistic UI Update (no changes here)
       const mainCard = currentCardBody.closest(".meal-day-card");
       mainCard.classList.add("meal-planned");
       updateMealCardUI(currentCardBody, {
@@ -1040,6 +1241,7 @@ document.addEventListener("DOMContentLoaded", () => {
           day: day,
           description: description,
           notes: notes,
+          week_of: week_of, // <-- ADD THIS PROPERTY
         },
         (meal_data) => {
           if (meal_data) {
@@ -1380,6 +1582,22 @@ document.addEventListener("DOMContentLoaded", () => {
       renderItems(window.initialItems);
     }
   }
+
+  socket.on("event_updated", (data) => {
+    const event = data.event;
+    const badge = document.getElementById(`event-${event.id}`);
+    if (badge) {
+      // Update the visible text
+      badge.innerHTML = `<span class="event-time">${event.time.substring(
+        0,
+        5
+      )}</span> ${event.title}`;
+
+      // CRUCIAL: Also update the data attributes for the view modal
+      badge.dataset.eventTitle = event.title;
+      badge.dataset.eventTime = event.formatted_time;
+    }
+  });
 
   // Hide the mobile "Add Item" modal after form submission
   const addItemModalEl = document.getElementById("addItemModal");

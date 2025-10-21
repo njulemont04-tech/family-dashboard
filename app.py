@@ -6,6 +6,7 @@ import os
 import cloudinary
 import cloudinary.uploader
 import bleach
+import calendar
 from datetime import datetime, timedelta, date
 from dotenv import load_dotenv
 from flask import (
@@ -219,6 +220,7 @@ class Meal(db.Model):
     meal_type = db.Column(db.String(20), nullable=False)
     description = db.Column(db.String(200), nullable=False)
     notes = db.Column(db.Text, nullable=True)
+    week_of = db.Column(db.Date, nullable=False)
     # CHANGED: Now links to a family
     family_id = db.Column(db.Integer, db.ForeignKey("family.id"), nullable=False)
     # We can still track who last updated this meal slot
@@ -840,10 +842,60 @@ def get_notifications_context(current_family):
 @app.route("/calendar")
 @login_required
 @family_required
-def calendar(current_family):
-    notifications_context = get_notifications_context(current_family)
+def calendar_view(current_family):
+    # Determine the year and month to display. Default to the current month.
+    try:
+        year = int(request.args.get("year", datetime.utcnow().year))
+        month = int(request.args.get("month", datetime.utcnow().month))
+    except ValueError:
+        year = datetime.utcnow().year
+        month = datetime.utcnow().month
+
+    # Create a calendar object (Monday as the first day of the week)
+    cal = calendar.Calendar(firstweekday=0)
+    # Get a list of weeks, where each week is a list of date objects
+    month_calendar = cal.monthdatescalendar(year, month)
+
+    # Get the first and last day of the month to query the database efficiently
+    first_day_of_month = date(year, month, 1)
+    # calendar.monthrange returns (weekday of first day, number of days in month)
+    _, num_days = calendar.monthrange(year, month)
+    last_day_of_month = date(year, month, num_days)
+
+    # Fetch all events for the family that fall within this month
+    month_events = (
+        Event.query.filter(
+            Event.family_id == current_family.id,
+            Event.date >= first_day_of_month,
+            Event.date <= last_day_of_month,
+        )
+        .order_by(Event.time)
+        .all()
+    )
+
+    # Process events into a dictionary for easy lookup in the template
+    # The key is the day number (e.g., 1, 15, 31)
+    events_by_day = {}
+    for event in month_events:
+        day_num = event.date.day
+        if day_num not in events_by_day:
+            events_by_day[day_num] = []
+        events_by_day[day_num].append(event)
+
+    # Calculate dates for the "Previous" and "Next" month navigation links
+    current_date = date(year, month, 1)
+    prev_month_date = current_date - timedelta(days=1)
+    next_month_date = current_date + timedelta(days=num_days)
+
     return render_template(
-        "calendar.html", current_family=current_family, **notifications_context
+        "calendar.html",
+        current_family=current_family,
+        month_calendar=month_calendar,
+        events_by_day=events_by_day,
+        current_date=current_date,
+        prev_month_date=prev_month_date,
+        next_month_date=next_month_date,
+        today=date.today(),
     )
 
 
@@ -929,6 +981,57 @@ def delete_event():
     return redirect(url_for("calendar"))
 
 
+@app.route("/edit_event/<int:event_id>", methods=["POST"])
+@login_required
+@family_required
+def edit_event(current_family, event_id):
+    event_to_edit = Event.query.get_or_404(event_id)
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
+
+    # Security check: User must be the author of the event to edit it
+    if event_to_edit.author_id != current_user.id:
+        if is_ajax:
+            return jsonify({"success": False, "message": "Permission denied."}), 403
+        flash(_("You do not have permission to edit this event."), "danger")
+        return redirect(url_for("calendar_view"))
+
+    # Get data from the form
+    title = request.form.get("title")
+    time_str = request.form.get("time")
+
+    if title and time_str:
+        # Update event in the database
+        event_to_edit.title = title
+        event_to_edit.time = datetime.strptime(time_str, "%H:%M").time()
+        db.session.commit()
+
+        # Prepare data to broadcast
+        event_data = {
+            "id": event_to_edit.id,
+            "title": event_to_edit.title,
+            "date": event_to_edit.date.strftime("%Y-%m-%d"),
+            "time": event_to_edit.time.strftime("%H:%M"),
+            "author": {
+                "username": event_to_edit.author.username,
+                "id": event_to_edit.author.id,
+            },
+            # Add formatted time for consistency with view modal
+            "formatted_time": event_to_edit.time.strftime("%I:%M %p"),
+        }
+
+        # Emit a new event to notify all clients of the update
+        socketio.emit(
+            "event_updated",
+            {"event": event_data},
+            room=f"family_room_{current_family.id}",
+        )
+
+        if is_ajax:
+            return jsonify({"success": True, "event": event_data})
+
+    return redirect(url_for("calendar_view"))
+
+
 # --- REFACTOR: MEAL PLANNER ROUTES ---
 
 
@@ -936,11 +1039,28 @@ def delete_event():
 @login_required
 @family_required
 def meal_planner(current_family):
-    family_meals = Meal.query.filter_by(
-        family_id=current_family.id, meal_type="Dinner"
-    ).all()
-    meal_plan_for_template = {meal.day: meal for meal in family_meals}
+    # Get the desired week offset from the URL, default to 0 (this week)
+    try:
+        week_offset = int(request.args.get("week_offset", 0))
+    except ValueError:
+        week_offset = 0
 
+    # Enforce the "one week max" rule
+    if week_offset not in [0, 1]:
+        week_offset = 0
+
+    today = date.today()
+    # Calculate the start of THIS week (the real one)
+    start_of_this_week = today - timedelta(days=today.weekday())
+    # Calculate the start of the week we actually want to display
+    start_of_target_week = start_of_this_week + timedelta(weeks=week_offset)
+
+    # Fetch meals ONLY for the target week
+    family_meals = Meal.query.filter_by(
+        family_id=current_family.id, week_of=start_of_target_week
+    ).all()
+
+    meal_plan_for_template = {meal.day: meal for meal in family_meals}
     meal_plan_for_json = {
         meal.day: {
             "id": meal.id,
@@ -951,7 +1071,6 @@ def meal_planner(current_family):
         for meal in family_meals
     }
 
-    # --- START: THE NEW DATE LOGIC ---
     days_of_week = [
         "Monday",
         "Tuesday",
@@ -961,24 +1080,20 @@ def meal_planner(current_family):
         "Saturday",
         "Sunday",
     ]
-
-    today = date.today()
-    # Calculate the date of the most recent Monday
-    start_of_week = today - timedelta(days=today.weekday())
-
-    # Create a new data structure that includes the day name AND its date
     week_schedule = []
     for i, day_name in enumerate(days_of_week):
-        current_date = start_of_week + timedelta(days=i)
+        current_date = start_of_target_week + timedelta(days=i)
         week_schedule.append({"name": day_name, "date": current_date})
-    # --- END: THE NEW DATE LOGIC ---
 
     return render_template(
         "meal_planner.html",
         current_family=current_family,
         meal_plan=meal_plan_for_template,
         meal_plan_json=json.dumps(meal_plan_for_json),
-        week_schedule=week_schedule,  # Pass the new schedule instead of days_of_week
+        week_schedule=week_schedule,
+        today=today,
+        week_offset=week_offset,  # Pass the offset for the navigation UI
+        start_of_target_week=start_of_target_week,  # Pass the week's date for the modal
     )
 
 
@@ -1889,24 +2004,34 @@ def handle_save_meal(data):
 
     day = data.get("day")
     description = data.get("description", "").strip()
-    notes = data.get("notes", "").strip()  # Get raw notes text
+    notes = data.get("notes", "").strip()
+    week_of_str = data.get("week_of")  # <-- Get the week date string
     current_family_id = session.get("current_family_id")
     meal_type = "Dinner"
 
-    if not all([day, description, current_family_id]):
+    if not all([day, description, current_family_id, week_of_str]):
         return  # Ignore incomplete requests
+
+    try:
+        # Convert the string back to a date object
+        week_of_date = datetime.strptime(week_of_str, "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return  # Invalid date format
 
     family = Family.query.get(current_family_id)
     if not family or current_user not in family.members:
-        return  # Security check
+        return
 
     existing_meal = Meal.query.filter_by(
-        family_id=current_family_id, day=day, meal_type=meal_type
+        family_id=current_family_id,
+        day=day,
+        meal_type=meal_type,
+        week_of=week_of_date,  # <-- Use the date in the query
     ).first()
 
     if existing_meal:
         existing_meal.description = description
-        existing_meal.notes = notes  # Save the raw notes
+        existing_meal.notes = notes
         existing_meal.author_id = current_user.id
         meal_to_process = existing_meal
     else:
@@ -1914,34 +2039,29 @@ def handle_save_meal(data):
             day=day,
             meal_type=meal_type,
             description=description,
-            notes=notes,  # Save the raw notes
+            notes=notes,
             family_id=current_family_id,
             author_id=current_user.id,
+            week_of=week_of_date,  # <-- Set the date when creating a new meal
         )
         db.session.add(new_meal)
         meal_to_process = new_meal
 
     db.session.commit()
 
-    # Prepare data to send back to clients
     meal_data = {
         "id": meal_to_process.id,
         "description": meal_to_process.description,
-        "notes": meal_to_process.notes or "",  # Send raw notes for editing
-        "notes_html": bleach.linkify(
-            meal_to_process.notes or ""
-        ),  # Send processed HTML for display
+        "notes": meal_to_process.notes or "",
+        "notes_html": bleach.linkify(meal_to_process.notes or ""),
         "day": meal_to_process.day,
     }
 
-    # Broadcast the update to everyone in the room
     emit(
         "meal_updated",
         {"meal": meal_data, "sid": request.sid},
         room=f"family_room_{current_family_id}",
     )
-
-    # Return the data to the original sender's callback function
     return meal_data
 
 

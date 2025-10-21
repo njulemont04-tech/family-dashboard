@@ -1,37 +1,124 @@
 {% extends 'base.html' %} {% block title %}{{ _('Calendar') }}{% endblock %} {%
 block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="mb-0">{{ _('Calendar') }}</h1>
+<div class="container py-4">
+  <!-- Header with Navigation -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
+    <h1 class="h2 mb-2 mb-md-0">{{ current_date.strftime('%B %Y') }}</h1>
+    <div class="btn-group">
+      <a
+        href="{{ url_for('calendar_view', year=prev_month_date.year, month=prev_month_date.month) }}"
+        class="btn btn-outline-primary"
+      >
+        <i class="bi bi-chevron-left"></i> {{ _('Previous') }}
+      </a>
+      <a href="{{ url_for('calendar_view') }}" class="btn btn-outline-secondary"
+        >{{ _('Today') }}</a
+      >
+      <a
+        href="{{ url_for('calendar_view', year=next_month_date.year, month=next_month_date.month) }}"
+        class="btn btn-outline-primary"
+      >
+        {{ _('Next') }} <i class="bi bi-chevron-right"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="table-responsive">
+    <table class="table table-bordered calendar-grid">
+      <thead>
+        <tr class="text-center">
+          <th>{{ _('Monday') }}</th>
+          <th>{{ _('Tuesday') }}</th>
+          <th>{{ _('Wednesday') }}</th>
+          <th>{{ _('Thursday') }}</th>
+          <th>{{ _('Friday') }}</th>
+          <th>{{ _('Saturday') }}</th>
+          <th>{{ _('Sunday') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for week in month_calendar %}
+        <tr>
+          {% for day_date in week %} {% set is_today = (day_date == today) %} {%
+          set is_current_month = (day_date.month == current_date.month) %}
+          <td
+            class="calendar-day {% if not is_current_month %}other-month{% endif %} {% if is_today %}today{% endif %}"
+            data-bs-toggle="modal"
+            data-bs-target="#addEventModal"
+            data-date="{{ day_date.strftime('%Y-%m-%d') }}"
+          >
+            <div class="day-number">{{ day_date.day }}</div>
+            <div class="events-container">
+              {% for event in events_by_day.get(day_date.day, []) %} {# This
+              check is crucial for days like '1' which can appear from prev/next
+              month #} {% if event.date == day_date %}
+              <div
+                class="event-badge"
+                id="event-{{ event.id }}"
+                data-bs-toggle="modal"
+                data-bs-target="#viewEventModal"
+                data-event-id="{{ event.id }}"
+                data-event-title="{{ event.title }}"
+                data-event-time="{{ event.time.strftime('%I:%M %p') }}"
+                data-event-author="{{ event.author.username }}"
+                data-event-author-id="{{ event.author_id }}"
+              >
+                <span class="event-time"
+                  >{{ event.time.strftime('%H:%M') }}</span
+                >
+                {{ event.title }}
+              </div>
+              {% endif %} {% endfor %}
+            </div>
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
-<div class="row">
-  <!-- Left Column: Add Event Form -->
-  <div class="col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">{{ _('Add New Event') }}</h5>
-        <form
-          action="{{ url_for('add_event') }}"
-          method="POST"
-          id="add-event-form"
-        >
+<!-- Add Event Modal -->
+<div
+  class="modal fade"
+  id="addEventModal"
+  tabindex="-1"
+  aria-labelledby="addEventModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form
+        id="add-event-form"
+        action="{{ url_for('add_event') }}"
+        method="POST"
+      >
+        <div class="modal-header">
+          <h5 class="modal-title" id="addEventModalLabel">
+            {{ _('Add Event') }}
+          </h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <!-- The date is now set by JavaScript, so this input is hidden -->
+          <input type="hidden" id="event-date-input" name="date" value="" />
+
           <div class="mb-3">
-            <label for="event-title" class="form-label">{{ _('Title') }}</label>
+            <label for="event-title" class="form-label"
+              >{{ _('Event Title') }}</label
+            >
             <input
               type="text"
-              name="title"
+              class="form-control"
               id="event-title"
-              class="form-control"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label for="event-date" class="form-label">{{ _('Date') }}</label>
-            <input
-              type="date"
-              name="date"
-              id="event-date"
-              class="form-control"
+              name="title"
               required
             />
           </div>
@@ -39,67 +126,95 @@ block content %}
             <label for="event-time" class="form-label">{{ _('Time') }}</label>
             <input
               type="time"
-              name="time"
-              id="event-time"
               class="form-control"
+              id="event-time"
+              name="time"
               required
             />
           </div>
-          <button type="submit" class="btn btn-primary w-100">
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            {{ _('Cancel') }}
+          </button>
+          <button type="submit" class="btn btn-primary">
             {{ _('Add Event') }}
           </button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Right Column: Events List -->
-  <div class="col-md-8">
-    <div id="events-list">
-      {% for event in current_family.events|sort(attribute='date') %}
-      <div
-        class="card mb-3"
-        id="event-{{ event.id }}"
-        data-timestamp="{{ event.created_at.isoformat() }}"
-      >
-        <div class="card-body">
-          <div class="d-flex justify-content-between">
-            <div>
-              <h5 class="card-title">{{ event.title }}</h5>
-              <p class="card-subtitle mb-2 text-muted">
-                {{ event.date.strftime('%a, %b %d, %Y') }} {{ _('at') }} {{
-                event.time.strftime('%I:%M %p') }}
-              </p>
-              <small class="text-muted"
-                >{{ _('Added by') }} {{ event.author.username }}</small
-              >
-            </div>
-            <div>
-              {% if event.author == current_user %}
-              <form
-                action="{{ url_for('delete_event') }}"
-                method="POST"
-                class="d-inline event-delete-form confirm-delete"
-                data-event-id="{{ event.id }}"
-              >
-                <input type="hidden" name="event_id" value="{{ event.id }}" />
-                <button
-                  type="submit"
-                  class="btn btn-sm btn-outline-danger"
-                  title="{{ _('Delete Event') }}"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
-              {% endif %}
-            </div>
-          </div>
         </div>
-      </div>
-      {% else %}
-      <div class="alert alert-info">{{ _('No events scheduled yet.') }}</div>
-      {% endfor %}
+      </form>
     </div>
   </div>
 </div>
+<!-- ========================================================== -->
+<!-- ADD THE NEW "VIEW EVENT" MODAL BLOCK RIGHT HERE -->
+<!-- ========================================================== -->
+<!-- View/Delete Event Modal -->
+<div
+  class="modal fade"
+  id="viewEventModal"
+  tabindex="-1"
+  aria-labelledby="viewEventModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="viewEventModalLabel">
+          {{ _('Event Details') }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <h4 id="view-event-title" class="mb-3"></h4>
+        <p class="lead">
+          <i class="bi bi-clock-fill me-2"></i>
+          <span id="view-event-time"></span>
+        </p>
+        <p class="text-muted" style="font-size: 0.9em">
+          <i class="bi bi-person-fill me-2"></i>
+          {{ _('Added by') }} <strong id="view-event-author"></strong>
+        </p>
+      </div>
+      <div class="modal-footer justify-content-between">
+        <!-- Actions for the event's author -->
+        <div id="event-author-actions">
+          <button type="button" id="edit-event-btn" class="btn btn-primary">
+            <i class="bi bi-pencil-square me-2"></i>{{ _('Edit') }}
+          </button>
+          <button
+            type="button"
+            id="delete-event-btn"
+            class="btn btn-outline-danger"
+          >
+            <i class="bi bi-trash me-2"></i>{{ _('Delete Event') }}
+          </button>
+        </div>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          {{ _('Close') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden form for deletion (re-uses existing confirm-delete logic) -->
+<form
+  action="{{ url_for('delete_event') }}"
+  method="POST"
+  class="d-none event-delete-form confirm-delete"
+>
+  <input type="hidden" name="event_id" id="delete-event-id-input" value="" />
+</form>
+<!-- ========================================================== -->
+<!-- END OF THE NEW CODE BLOCK -->
+<!-- ========================================================== -->
 {% endblock %}
