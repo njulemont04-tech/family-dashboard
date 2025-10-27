@@ -1306,39 +1306,52 @@ document.addEventListener("DOMContentLoaded", () => {
   // This listener for the "Generate Chores" button is a special case.
   // It has its own AJAX logic and doesn't need the confirmation modal,
   // so it remains separate from the delegated listener.
-  const generateForm = document.getElementById("generate-chores-form");
-  if (generateForm) {
-    const generateBtn = document.getElementById("generate-btn");
-    const originalBtnText = generateBtn.innerHTML;
+  // This listener handles the "Generate Chores" button click for both desktop and mobile.
+  document.querySelectorAll(".generate-chores-btn").forEach((button) => {
+    button.addEventListener("click", function (event) {
+      event.preventDefault();
 
-    generateForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
+      // Disable both buttons to prevent double-clicks
+      document
+        .querySelectorAll(".generate-chores-btn")
+        .forEach((btn) => (btn.disabled = true));
 
-      generateBtn.disabled = true;
-      generateBtn.innerHTML =
-        '<span class="spinner-border spinner-border-sm me-2"></span>Generating...';
+      // Show a loading state on the specific button that was clicked
+      const originalText = this.innerHTML;
+      this.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating...`;
 
-      try {
-        const response = await fetch(generateForm.action, {
-          method: "POST",
-          headers: { "X-Requested-With": "XMLHttpRequest" },
+      fetch("/chores/generate", {
+        method: "POST",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            showToast(data.message, "success");
+            // Reload the page after a short delay to show the new assignments
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            showToast(data.message || "An error occurred.", "danger");
+            // Restore buttons on failure
+            document.querySelectorAll(".generate-chores-btn").forEach((btn) => {
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+            });
+          }
+        })
+        .catch((error) => {
+          console.error("Error generating chores:", error);
+          showToast("A network error occurred.", "danger");
+          // Restore buttons on network error
+          document.querySelectorAll(".generate-chores-btn").forEach((btn) => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          });
         });
-        const data = await response.json();
-
-        if (data.success) {
-          showToast(data.message, "success");
-        } else {
-          showToast(data.message, "warning");
-        }
-      } catch (error) {
-        console.error("Error generating chores:", error);
-        showToast("An error occurred.", "danger");
-      } finally {
-        generateBtn.disabled = false;
-        generateBtn.innerHTML = originalBtnText;
-      }
     });
-  }
+  });
 
   // This listener handles checkbox changes on the chore list, not form submissions.
   // It can remain as is.

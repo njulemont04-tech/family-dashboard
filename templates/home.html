@@ -1,5 +1,7 @@
 {% extends 'base.html' %} {% block title %} {{ _('Home') }} - {{
 current_family.name }} {% endblock %} {% block content %}
+<!-- ADD THIS LINE: This includes the mobile header -->
+{% include '_mobile_header.html' %}
 <div class="text-center">
   <h1 class="display-5 mb-3">
     {{ _('Welcome, %(username)s!', username=current_user.username) }}

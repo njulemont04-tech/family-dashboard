@@ -1,8 +1,6 @@
 {% extends 'base.html' %} {% block title %}{{ _('Bulletin Board') }}{% endblock
-%} {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="mb-0">{{ _('Bulletin Board') }}</h1>
-</div>
+%} {% block content %} {% set page_title = _('Bulletin Board') %} {% include
+'_feature_header.html' %}
 
 <div class="row">
   <div class="col-md-8">

@@ -1,0 +1,58 @@
+{% extends 'base.html' %} {% block title %}{{ _('Settings') }} - {{ super() }}{%
+endblock %} {% block content %} {% set page_title = _('Settings') %} {% include
+'_feature_header.html' %}
+
+<div class="row g-4">
+  <!-- Language Settings Card -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-translate me-2"></i>{{ _('Language') }}
+      </div>
+      <div class="card-body">
+        <p class="card-text">
+          {{ _('Choose your preferred language for the application.') }}
+        </p>
+        <div class="list-group">
+          {% for code, name in app.config.LANGUAGES.items() %}
+          <a
+            href="{{ url_for('set_language', lang=code) }}"
+            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if session.get('language', 'en') == code %}active{% endif %}"
+          >
+            {{ name }} {% if session.get('language', 'en') == code %}<i
+              class="bi bi-check-circle-fill"
+            ></i
+            >{% endif %}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Account Actions Card -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <i class="bi bi-person-gear me-2"></i>{{ _('Account') }}
+      </div>
+      <div class="list-group list-group-flush">
+        {% if current_user.families|length > 1 %}
+        <a
+          href="{{ url_for('families') }}"
+          class="list-group-item list-group-item-action"
+        >
+          {{ _('Manage Spaces') }}
+        </a>
+        {% endif %}
+        <a
+          href="{{ url_for('logout') }}"
+          class="list-group-item list-group-item-action text-danger"
+        >
+          {{ _('Sign Out') }}
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

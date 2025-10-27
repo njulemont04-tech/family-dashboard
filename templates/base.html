@@ -193,14 +193,6 @@
           <strong>{{ current_user.username }}</strong>
         </a>
         <ul class="dropdown-menu dropdown-menu-dark text-small shadow">
-          {% if current_user.families|length > 1 %}
-          <li>
-            <a class="dropdown-item" href="{{ url_for('families') }}"
-              >{{ _('Manage Families') }}</a
-            >
-          </li>
-          {% endif %}
-
           <li>
             <a
               class="dropdown-item {% if request.endpoint == 'profile' %}active{% endif %}"
@@ -208,18 +200,21 @@
               >{{ _('Profile') }}</a
             >
           </li>
-          <li><hr class="dropdown-divider" /></li>
-          <!-- ADD THIS NEW, CLEANER LINE -->
           <li>
             <a
-              class="dropdown-item"
-              href="#"
-              data-bs-toggle="modal"
-              data-bs-target="#languageModal"
+              class="dropdown-item {% if request.endpoint == 'settings' %}active{% endif %}"
+              href="{{ url_for('settings') }}"
+              >{{ _('Settings') }}</a
             >
-              <i class="bi bi-translate me-2"></i>{{ _('Switch Language') }}
-            </a>
           </li>
+
+          {% if current_user.families|length > 1 %}
+          <li>
+            <a class="dropdown-item" href="{{ url_for('families') }}"
+              >{{ _('Manage Spaces') }}</a
+            >
+          </li>
+          {% endif %}
 
           <li><hr class="dropdown-divider" /></li>
           <li>
@@ -230,91 +225,56 @@
         </ul>
       </div>
     </div>
-
-    <!-- Bottom Navbar for Mobile -->
-    <div class="bottom-nav d-md-none">
-      <a
-        href="{{ url_for('dashboard') }}"
-        class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}"
-      >
-        <img
-          src="{{ url_for('static', filename='icons/list.svg') }}"
-          class="bottom-nav-icon"
-        />
-      </a>
-      <a
-        href="{{ url_for('calendar_view') }}"
-        class="nav-link {% if request.endpoint == 'calendar' %}active{% endif %}"
-      >
-        <div class="live-icon-wrapper">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke-width="1.5"
-            stroke="currentColor"
-            class="size-6"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"
-            />
-          </svg>
-          <span class="live-icon-day">{{ current_day }}</span>
-        </div>
-      </a>
-      <a
-        href="{{ url_for('home') }}"
-        class="nav-link {% if request.endpoint == 'home' %}active{% endif %}"
-      >
-        <img
-          src="{{ url_for('static', filename='icons/home.svg') }}"
-          class="bottom-nav-icon"
-        />
-      </a>
-      <!-- START: ADD NEW VAULT LINK -->
-      <a
-        href="{{ url_for('vault') }}"
-        class="nav-link {% if request.endpoint == 'vault' %}active{% endif %}"
-      >
-        <img
-          src="{{ url_for('static', filename='icons/vault.svg') }}"
-          class="bottom-nav-icon"
-        />
-      </a>
-      <!-- END: ADD NEW VAULT LINK -->
-      <a
-        href="{{ url_for('meal_planner') }}"
-        class="nav-link {% if request.endpoint == 'meal_planner' %}active{% endif %}"
-      >
-        <img
-          src="{{ url_for('static', filename='icons/meal.svg') }}"
-          class="bottom-nav-icon"
-        />
-      </a>
-      <!-- START: ADD NEW CHORES LINK -->
-      <a
-        href="{{ url_for('chores') }}"
-        class="nav-link {% if request.endpoint == 'chores' %}active{% endif %}"
-      >
-        <img
-          src="{{ url_for('static', filename='icons/chores.svg') }}"
-          class="bottom-nav-icon"
-        />
-      </a>
-      <!-- END: ADD NEW CHORES LINK -->
-      <a
-        href="{{ url_for('bulletin_board') }}"
-        class="nav-link {% if request.endpoint == 'bulletin_board' %}active{% endif %}"
-      >
-        <img
-          src="{{ url_for('static', filename='icons/bulletin.svg') }}"
-          class="bottom-nav-icon"
-        />
-      </a>
-    </div>
     {% endif %}
+
+    <!-- REFACTORED Off-Canvas Menu for Mobile -->
+    <div
+      class="offcanvas offcanvas-end d-md-none"
+      tabindex="-1"
+      id="mobileMenu"
+      aria-labelledby="mobileMenuLabel"
+    >
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="mobileMenuLabel">
+          {{ _('More Features') }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="offcanvas-body">
+        <!-- List of Secondary Links -->
+        <ul class="nav nav-pills flex-column">
+          <li class="nav-item">
+            <a
+              href="{{ url_for('bulletin_board') }}"
+              class="nav-link text-dark {% if request.endpoint == 'bulletin_board' %}active{% endif %}"
+            >
+              <img
+                src="{{ url_for('static', filename='icons/bulletin.svg') }}"
+                class="sidebar-icon me-2"
+              />
+              {{ _('Bulletin Board') }}
+            </a>
+          </li>
+          <li class="nav-item">
+            <a
+              href="{{ url_for('vault') }}"
+              class="nav-link text-dark {% if request.endpoint == 'vault' %}active{% endif %}"
+            >
+              <img
+                src="{{ url_for('static', filename='icons/vault.svg') }}"
+                class="sidebar-icon me-2"
+              />
+              {{ _('Family Vault') }}
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
 
     <!-- =============================================================== -->
     <!--                  START: THE SIMPLIFIED FIX                      -->

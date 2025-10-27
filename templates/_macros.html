@@ -1,0 +1,26 @@
+{% macro feature_header(page_title, show_actions_on_mobile=True) %} {# Capture
+the action buttons passed into the macro into a variable for reuse #} {% set
+actions = caller() if caller %}
+
+<!-- Mobile Header (Back button + Title ONLY) -->
+<div class="feature-header d-flex d-md-none align-items-center mb-4">
+  <a href="{{ url_for('home') }}" class="feature-header-back-button">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h1 class="feature-header-title h2 mb-0">{{ page_title }}</h1>
+</div>
+
+<!-- Mobile Actions (Displays buttons BELOW the title on mobile, IF enabled) -->
+{% if actions and show_actions_on_mobile %}
+<div class="d-md-none mb-4">{{ actions }}</div>
+{% endif %}
+
+<!-- Desktop Header (Title + Actions side-by-side) -->
+<div class="d-none d-md-flex justify-content-between align-items-center mb-4">
+  <h1 class="h2 mb-0">{{ page_title }}</h1>
+
+  {% if actions %}
+  <div class="feature-header-actions">{{ actions }}</div>
+  {% endif %}
+</div>
+{% endmacro %}

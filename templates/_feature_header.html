@@ -1,0 +1,12 @@
+<!-- Reusable Header for Feature Pages on Mobile -->
+<div class="feature-header d-flex d-md-none align-items-center mb-4">
+  <a href="{{ url_for('home') }}" class="feature-header-back-button">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h1 class="feature-header-title h2 mb-0">{{ page_title }}</h1>
+</div>
+
+<!-- On desktop, we just show a standard title -->
+<div class="d-none d-md-block">
+  <h1 class="h2 mb-4">{{ page_title }}</h1>
+</div>

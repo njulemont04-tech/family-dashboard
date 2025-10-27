@@ -1355,6 +1355,18 @@ def change_password():
     return redirect(url_for("profile"))
 
 
+# --- START: NEW SETTINGS ROUTE ---
+@app.route("/settings")
+@login_required
+def settings():
+    # Note: We don't use @family_required here because settings are user-specific,
+    # and should be accessible even if a family space isn't selected.
+    return render_template("settings.html", title=_("Settings"))
+
+
+# --- END: NEW SETTINGS ROUTE ---
+
+
 # --- START: NEW FAMILY VAULT ROUTES ---
 @app.route("/vault")
 @login_required

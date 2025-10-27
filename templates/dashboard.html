@@ -1,18 +1,20 @@
-{% extends 'base.html' %} {% block title %} {{ _('Family Dashboard') }} {%
-endblock %} {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h1 class="h2 mb-0">{{ _('Family Dashboard') }}</h1>
-  {% if current_family.owner == current_user %}
-  <button
-    class="btn btn-primary"
-    data-bs-toggle="modal"
-    data-bs-target="#createListModal"
-  >
-    <i class="bi bi-plus-lg me-1"></i> {{ _('New List') }}
-  </button>
-  {% endif %}
-</div>
+{% extends 'base.html' %} {# Step 1: Import our new macro file #} {% from
+'_macros.html' import feature_header %} {% block title %} {{ _('Lists') }} - {{
+super() }}{% endblock %} {% block content %} {# Step 2: Call the macro. The
+button inside the 'call' block will appear in the "slot" on desktop. #} {% call
+feature_header(_('Lists'), show_actions_on_mobile=False) %} {% if
+current_family.owner == current_user %}
+<button
+  class="btn btn-primary"
+  data-bs-toggle="modal"
+  data-bs-target="#createListModal"
+>
+  <i class="bi bi-plus-lg me-1"></i>
+  <span>{{ _('New List') }}</span>
+</button>
+{% endif %} {% endcall %}
 
+<!-- The main page content remains the same -->
 <div class="row g-4" id="lists-container">
   {% if current_family.shopping_lists %} {% for list in
   current_family.shopping_lists %} {% include 'list_summary_card.html' %} {%
@@ -26,8 +28,20 @@ endblock %} {% block content %}
   {% endif %}
 </div>
 
-<!-- Create List Modal -->
+<!-- Step 3: Add the new Floating Action Button for mobile -->
 {% if current_family.owner == current_user %}
+<a
+  href="#"
+  class="btn btn-primary rounded-circle fab d-md-none"
+  data-bs-toggle="modal"
+  data-bs-target="#createListModal"
+  title="{{ _('New List') }}"
+>
+  <i class="bi bi-plus-lg"></i>
+</a>
+{% endif %}
+
+<!-- Create List Modal (Unchanged) -->
 <div class="modal fade" id="createListModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -70,4 +84,5 @@ endblock %} {% block content %}
     </div>
   </div>
 </div>
-{% endif %} {% endblock %}
+
+{% endblock %}

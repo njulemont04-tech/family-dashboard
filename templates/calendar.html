@@ -1,83 +1,120 @@
-{% extends 'base.html' %} {% block title %}{{ _('Calendar') }}{% endblock %} {%
-block content %}
-<div class="container py-4">
-  <!-- Header with Navigation -->
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap">
-    <h1 class="h2 mb-2 mb-md-0">{{ current_date.strftime('%B %Y') }}</h1>
-    <div class="btn-group">
-      <a
-        href="{{ url_for('calendar_view', year=prev_month_date.year, month=prev_month_date.month) }}"
-        class="btn btn-outline-primary"
-      >
-        <i class="bi bi-chevron-left"></i> {{ _('Previous') }}
-      </a>
-      <a href="{{ url_for('calendar_view') }}" class="btn btn-outline-secondary"
-        >{{ _('Today') }}</a
-      >
-      <a
-        href="{{ url_for('calendar_view', year=next_month_date.year, month=next_month_date.month) }}"
-        class="btn btn-outline-primary"
-      >
-        {{ _('Next') }} <i class="bi bi-chevron-right"></i>
-      </a>
-    </div>
-  </div>
+{% extends "base.html" %} {% block title %}{{ _('Calendar') }} - {{ super() }}{%
+endblock %} {% block content %}
 
-  <!-- Calendar Grid -->
-  <div class="table-responsive">
-    <table class="table table-bordered calendar-grid">
-      <thead>
-        <tr class="text-center">
-          <th>{{ _('Monday') }}</th>
-          <th>{{ _('Tuesday') }}</th>
-          <th>{{ _('Wednesday') }}</th>
-          <th>{{ _('Thursday') }}</th>
-          <th>{{ _('Friday') }}</th>
-          <th>{{ _('Saturday') }}</th>
-          <th>{{ _('Sunday') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for week in month_calendar %}
-        <tr>
-          {% for day_date in week %} {% set is_today = (day_date == today) %} {%
-          set is_current_month = (day_date.month == current_date.month) %}
-          <td
-            class="calendar-day {% if not is_current_month %}other-month{% endif %} {% if is_today %}today{% endif %}"
-            data-bs-toggle="modal"
-            data-bs-target="#addEventModal"
-            data-date="{{ day_date.strftime('%Y-%m-%d') }}"
-          >
-            <div class="day-number">{{ day_date.day }}</div>
-            <div class="events-container">
-              {% for event in events_by_day.get(day_date.day, []) %} {# This
-              check is crucial for days like '1' which can appear from prev/next
-              month #} {% if event.date == day_date %}
-              <div
-                class="event-badge"
-                id="event-{{ event.id }}"
-                data-bs-toggle="modal"
-                data-bs-target="#viewEventModal"
-                data-event-id="{{ event.id }}"
-                data-event-title="{{ event.title }}"
-                data-event-time="{{ event.time.strftime('%I:%M %p') }}"
-                data-event-author="{{ event.author.username }}"
-                data-event-author-id="{{ event.author_id }}"
-              >
-                <span class="event-time"
-                  >{{ event.time.strftime('%H:%M') }}</span
-                >
-                {{ event.title }}
-              </div>
-              {% endif %} {% endfor %}
-            </div>
-          </td>
-          {% endfor %}
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<!-- ================================================================== -->
+<!-- START: NEW DEDICATED CALENDAR HEADER                             -->
+<!-- ================================================================== -->
+
+<!-- 1. Mobile Header: Displays the "Calendar" title and a back button -->
+<div class="feature-header d-flex d-md-none align-items-center mb-4">
+  <a href="{{ url_for('home') }}" class="feature-header-back-button">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h1 class="feature-header-title h2 mb-0">{{ _('Calendar') }}</h1>
+</div>
+
+<!-- 2. Desktop Header: Displays ONLY the month/year and navigation controls -->
+<div class="d-none d-md-flex justify-content-between align-items-center mb-4">
+  <h1 class="h2 mb-0">{{ current_date.strftime('%B %Y') }}</h1>
+  <div class="btn-group">
+    <a
+      href="{{ url_for('calendar_view', year=prev_month_date.year, month=prev_month_date.month) }}"
+      class="btn btn-outline-primary"
+    >
+      <i class="bi bi-chevron-left"></i> {{ _('Previous') }}
+    </a>
+    <a href="{{ url_for('calendar_view') }}" class="btn btn-outline-secondary"
+      >{{ _('Today') }}</a
+    >
+    <a
+      href="{{ url_for('calendar_view', year=next_month_date.year, month=next_month_date.month) }}"
+      class="btn btn-outline-primary"
+    >
+      {{ _('Next') }} <i class="bi bi-chevron-right"></i>
+    </a>
   </div>
+</div>
+
+<!-- 3. Mobile Sub-Header: Displays the month/year and navigation below the main title -->
+<div class="d-flex d-md-none justify-content-between align-items-center mb-4">
+  <h2 class="h4 mb-0">{{ current_date.strftime('%B %Y') }}</h2>
+  <div class="btn-group">
+    <a
+      href="{{ url_for('calendar_view', year=prev_month_date.year, month=prev_month_date.month) }}"
+      class="btn btn-sm btn-outline-primary"
+    >
+      <i class="bi bi-chevron-left"></i>
+    </a>
+    <a
+      href="{{ url_for('calendar_view') }}"
+      class="btn btn-sm btn-outline-secondary"
+      >{{ _('Today') }}</a
+    >
+    <a
+      href="{{ url_for('calendar_view', year=next_month_date.year, month=next_month_date.month) }}"
+      class="btn btn-sm btn-outline-primary"
+    >
+      <i class="bi bi-chevron-right"></i>
+    </a>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- END: NEW DEDICATED CALENDAR HEADER                               -->
+<!-- ================================================================== -->
+
+<!-- Calendar Grid -->
+<div class="table-responsive">
+  <table class="table table-bordered calendar-grid">
+    <thead>
+      <tr class="text-center">
+        <th>{{ _('Monday') }}</th>
+        <th>{{ _('Tuesday') }}</th>
+        <th>{{ _('Wednesday') }}</th>
+        <th>{{ _('Thursday') }}</th>
+        <th>{{ _('Friday') }}</th>
+        <th>{{ _('Saturday') }}</th>
+        <th>{{ _('Sunday') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for week in month_calendar %}
+      <tr>
+        {% for day_date in week %} {% set is_today = (day_date == today) %} {%
+        set is_current_month = (day_date.month == current_date.month) %}
+        <td
+          class="calendar-day {% if not is_current_month %}other-month{% endif %} {% if is_today %}today{% endif %}"
+          data-bs-toggle="modal"
+          data-bs-target="#addEventModal"
+          data-date="{{ day_date.strftime('%Y-%m-%d') }}"
+        >
+          <div class="day-number">{{ day_date.day }}</div>
+          <div class="events-container">
+            {% for event in events_by_day.get(day_date.day, []) %} {# This check
+            is crucial for days like '1' which can appear from prev/next month
+            #} {% if event.date == day_date %}
+            <div
+              class="event-badge"
+              id="event-{{ event.id }}"
+              data-bs-toggle="modal"
+              data-bs-target="#viewEventModal"
+              data-event-id="{{ event.id }}"
+              data-event-title="{{ event.title }}"
+              data-event-time="{{ event.time.strftime('%I:%M %p') }}"
+              data-event-author="{{ event.author.username }}"
+              data-event-author-id="{{ event.author_id }}"
+            >
+              <span class="event-time">{{ event.time.strftime('%H:%M') }}</span>
+              {{ event.title }}
+            </div>
+            {% endif %} {% endfor %}
+          </div>
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 <!-- Add Event Modal -->
