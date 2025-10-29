@@ -436,8 +436,8 @@ def set_language(lang=None):
             db.session.commit()
             flash(_("Language updated!"), "success")
 
-    # Redirect the user back to the page they were on
-    return redirect(request.referrer or url_for("home"))
+    # Always redirect back to the settings page after changing the language.
+    return redirect(url_for("settings"))
 
 
 @app.route("/families")

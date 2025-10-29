@@ -45,6 +45,8 @@ document.addEventListener("DOMContentLoaded", () => {
       info: "text-bg-secondary",
     };
     const toastClass = toastClassMap[type] || "text-bg-secondary";
+
+    // NOTE: We are back to creating the simple toast HTML, no wrapper.
     const toastHTML = `
       <div class="toast ${toastClass}" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
@@ -58,13 +60,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const toastElement = document
       .createRange()
       .createContextualFragment(toastHTML).firstElementChild;
+
     toastContainer.appendChild(toastElement);
+
     const toast = new bootstrap.Toast(toastElement, { delay: 5000 });
+
     toastElement.addEventListener("hidden.bs.toast", () =>
       toastElement.remove()
     );
+
     toast.show();
   };
+
+  // START: ADD THIS NEW CODE BLOCK
+  // Check if the server rendered any flash messages into the window object
+  if (window.flashMessages && window.flashMessages.length > 0) {
+    window.flashMessages.forEach(function (flash) {
+      // Call your existing showToast function for each message
+      showToast(flash.message, flash.category);
+    });
+  }
+  // END: ADD THIS NEW CODE BLOCK
 
   const notificationManager = {
     _getStorageKey: (feature, familyId) =>

@@ -11,25 +11,29 @@ endblock %} {% block content %}
   <h1 class="feature-header-title h2 mb-0">{{ _('Chores') }}</h1>
 </div>
 
+<!-- 2. Desktop Header: Displays "Chores Dashboard" title and Generate button for admin -->
 <div class="d-none d-md-flex justify-content-between align-items-center mb-4">
   <h1 class="h2 mb-0">{{ _('Chores Dashboard') }}</h1>
   {% if current_family.owner_id == current_user.id %}
+  <!-- We use the new shared class 'generate-chores-btn' -->
   <button
-    class="btn btn-primary generate-chores-btn"
+    class="btn btn-success generate-chores-btn"
     id="generate-chores-btn-desktop"
   >
-    <i class="bi bi-stars me-1"></i> {{ _('Generate for This Week') }}
+    <i class="bi bi-lightning-fill me-1"></i> {{ _('Generate for This Week') }}
   </button>
   {% endif %}
 </div>
 
+<!-- 3. Mobile Admin Action: Displays ONLY the centered Generate button for admin -->
 {% if current_family.owner_id == current_user.id %}
 <div class="d-grid gap-2 d-md-none mb-4">
+  <!-- We use the new shared class 'generate-chores-btn' -->
   <button
-    class="btn btn-primary btn-lg generate-chores-btn"
+    class="btn btn-success btn-lg generate-chores-btn"
     id="generate-chores-btn-mobile"
   >
-    <i class="bi bi-stars me-1"></i> {{ _('Generate for This Week') }}
+    <i class="bi bi-lightning-fill me-1"></i> {{ _('Generate for This Week') }}
   </button>
 </div>
 {% endif %}

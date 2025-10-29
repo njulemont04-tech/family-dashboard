@@ -774,3 +774,47 @@ h6 {
 .feature-header-title {
   flex-grow: 1;
 }
+
+/* --- START: Final, Polished Toast Progress Bar (Corrected Again) --- */
+
+/* 
+  This is the complete rule. The toast needs to be a positioning context,
+  AND it needs to clip its overflowing children to its rounded corners.
+*/
+.toast {
+  position: relative;
+  overflow: hidden; /* <-- THIS IS THE CRUCIAL FIX */
+}
+
+/* 
+  This pseudo-element creates the progress bar. Now that its parent
+  (.toast) has overflow:hidden, its corners will be perfectly clipped.
+*/
+.toast::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 5px;
+  width: 100%;
+  background-color: rgba(
+    0,
+    0,
+    0,
+    0.35
+  ); /* Darker overlay for better contrast */
+
+  /* Start the animation after 150ms to sync with Bootstrap's fade-in */
+  animation: toast-progress-bar 4.85s linear forwards 0.15s;
+}
+
+@keyframes toast-progress-bar {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+/* --- END: Final, Polished Toast Progress Bar (Corrected Again) --- */
