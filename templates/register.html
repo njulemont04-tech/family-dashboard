@@ -10,7 +10,7 @@
       <div class="alert alert-{{ category }}">{{ message }}</div>
       {% endfor %} {% endif %} {% endwith %}
 
-      <form method="POST" action="{{ url_for('register') }}">
+      <form method="POST" action="{{ url_for('register') }}" id="register-form">
         <div class="form-floating mb-2">
           <input
             type="text"
@@ -22,26 +22,81 @@
           />
           <label for="floatingInput">{{ _('Username') }}</label>
         </div>
-        <div class="input-group mb-3">
+
+        {# --- START: MODIFIED PASSWORD BLOCK --- #}
+        <div class="input-group mb-2">
           <div class="form-floating">
             <input
               type="password"
               name="password"
               class="form-control"
-              id="password-input"
+              id="register-password-input"
+              {#
+              Changed
+              id
+              #}
               placeholder="{{ _('Password') }}"
               required
             />
-            <label for="password-input">{{ _('Password') }}</label>
+            <label for="register-password-input">{{ _('Password') }}</label>
           </div>
           <button
-            class="btn btn-outline-secondary"
+            class="btn btn-outline-secondary toggle-password-button"
+            {#
+            Added
+            class
+            #}
             type="button"
-            id="toggle-password-btn"
+            data-target="#register-password-input"
+            {#
+            Added
+            data-target
+            #}
           >
             <i class="bi bi-eye-slash-fill"></i>
           </button>
         </div>
+        {# --- END: MODIFIED PASSWORD BLOCK --- #} {# --- START: NEW CONFIRM
+        PASSWORD BLOCK --- #}
+        <div class="input-group mb-3">
+          <div class="form-floating">
+            <input
+              type="password"
+              name="confirm_password"
+              class="form-control"
+              id="confirm-password-input"
+              placeholder="{{ _('Confirm Password') }}"
+              required
+            />
+            <label for="confirm-password-input"
+              >{{ _('Confirm Password') }}</label
+            >
+          </div>
+          <button
+            class="btn btn-outline-secondary toggle-password-button"
+            {#
+            Added
+            class
+            #}
+            type="button"
+            data-target="#confirm-password-input"
+            {#
+            Added
+            data-target
+            #}
+          >
+            <i class="bi bi-eye-slash-fill"></i>
+          </button>
+        </div>
+        {# --- END: NEW CONFIRM PASSWORD BLOCK --- #}
+
+        <div
+          id="password-match-error"
+          class="form-text text-danger d-none text-start mb-3"
+        >
+          {{ _('Passwords do not match.') }}
+        </div>
+
         <button class="w-100 btn btn-lg btn-primary" type="submit">
           {{ _('Register') }}
         </button>

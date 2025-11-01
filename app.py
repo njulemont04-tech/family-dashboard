@@ -1139,44 +1139,94 @@ def delete_meal():
 # In app.py
 
 
+# In app.py, REPLACE the entire bulletin_board route.
+
+
 @app.route("/bulletin_board")
 @login_required
 @family_required
 def bulletin_board(current_family):
-    # The check is now handled by the decorator.
-
-    # --- START: NEW AUTO-DELETION LOGIC ---
-    # Define the cutoff for notes to be deleted (e.g., 30 days old)
+    # --- START: REVISED LOGIC FOR PINNING ---
+    # Auto-deletion logic remains the same
     cutoff_date = datetime.utcnow() - timedelta(days=30)
-
-    # Find and delete old, unpinned notes for THIS family only
     Note.query.filter(
         Note.family_id == current_family.id,
         Note.timestamp < cutoff_date,
         Note.is_pinned == False,
-    ).delete(
-        synchronize_session=False
-    )  # Use False for bulk deletes
-
+    ).delete(synchronize_session=False)
     db.session.commit()
-    # --- END: NEW AUTO-DELETION LOGIC ---
 
-    # --- START: NEW PINNED NOTES QUERY ---
+    # Fetch Pinned and Unpinned notes separately
     pinned_notes = (
         Note.query.filter_by(family_id=current_family.id, is_pinned=True)
-        .order_by(Note.timestamp.desc())
+        .order_by(Note.timestamp.desc())  # Pinned notes are newest first
         .all()
     )
-    # --- END: NEW PINNED NOTES QUERY ---
 
-    notifications_context = get_notifications_context(current_family)
+    unpinned_notes = (
+        Note.query.filter_by(family_id=current_family.id, is_pinned=False)
+        .order_by(Note.timestamp.asc())  # Chat messages are oldest first
+        .all()
+    )
+
     return render_template(
         "bulletin_board.html",
         current_family=current_family,
-        current_user_id=current_user.id,
-        pinned_notes=pinned_notes,  # Pass the pinned notes to the template
-        **notifications_context,
+        pinned_notes=pinned_notes,  # Pass pinned notes
+        unpinned_notes=unpinned_notes,  # Pass unpinned notes
     )
+
+
+# --- END: REVISED LOGIC FOR PINNING ---
+
+
+# --- END: MODIFIED LOGIC ---
+
+
+@app.route("/internal/render_bulletin_post/<int:note_id>")
+@login_required
+@family_required
+def render_bulletin_post(current_family, note_id):
+    """
+    Internal route to render a single bulletin post partial.
+    Used by JavaScript to get clean HTML for new posts via websockets.
+    """
+    note = Note.query.get_or_404(note_id)
+    # Security check: ensure the note belongs to the user's current family
+    if note.family_id != current_family.id:
+        return "", 403  # Return forbidden if not authorized
+
+    # We use render_template_string because we are including a partial
+    # that needs the full Jinja context (like `current_user`).
+    return render_template_string('{% include "_bulletin_post.html" %}', post=note)
+
+
+# In app.py, ADD THIS ROUTE.
+# A good place is right after the 'render_bulletin_post' function.
+
+
+# In app.py, REPLACE the existing render_pinned_post function with this one.
+
+
+# In app.py, REPLACE the temporary debug function with this FINAL version.
+
+
+@app.route("/internal/render_pinned_post/<int:note_id>")
+@login_required
+@family_required
+def render_pinned_post(current_family, note_id):
+    """
+    Internal route to render a single PINNED post partial.
+    Used by JavaScript to get clean HTML for pinned notes.
+    """
+    note = Note.query.get_or_404(note_id)
+    # Security check
+    if note.family_id != current_family.id:
+        return "", 403
+
+    # --- THE FIX IS LIKELY A TYPO IN THIS FILENAME ---
+    # Verify that your file is named EXACTLY "_pinned_post_card.html"
+    return render_template_string('{% include "_pinned_post_card.html" %}', post=note)
 
 
 @app.route("/add_note", methods=["POST"])
@@ -1253,28 +1303,62 @@ def delete_note():
 
 @app.route("/pin_note", methods=["POST"])
 @login_required
-def pin_note():
+@family_required
+def pin_note(current_family):
     note_id = request.form.get("note_id")
     note_to_pin = Note.query.get(note_id)
     is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
-    if note_to_pin and current_user in note_to_pin.family.members:
-        note_to_pin.is_pinned = not note_to_pin.is_pinned
-        db.session.commit()
-
-        # --- START OF FIX: BROADCAST THE CHANGE ---
-        socketio.emit(
-            "note_pinned",
-            {
-                "note_id": note_to_pin.id,
-                "is_pinned": note_to_pin.is_pinned,
-            },
-            room=f"family_room_{note_to_pin.family_id}",
-        )
-        # --- END OF FIX ---
-
+    # Basic security check
+    if not note_to_pin or note_to_pin.family_id != current_family.id:
         if is_ajax:
-            return jsonify({"success": True, "is_pinned": note_to_pin.is_pinned})
+            return jsonify({"success": False, "message": "Note not found."}), 404
+        return redirect(url_for("bulletin_board"))
+
+    # --- START: NEW GRANULAR PERMISSION LOGIC ---
+    is_admin = current_user.id == current_family.owner_id
+    is_author = current_user.id == note_to_pin.author_id
+
+    # Determine if the user is trying to PIN or UNPIN
+    if note_to_pin.is_pinned:
+        # Action is UNPINNING: Allowed if user is the author OR the admin.
+        if not (is_author or is_admin):
+            if is_ajax:
+                return (
+                    jsonify(
+                        {"success": False, "message": "Permission denied to unpin."}
+                    ),
+                    403,
+                )
+            flash(_("You do not have permission to unpin this note."), "danger")
+            return redirect(url_for("bulletin_board"))
+    else:
+        # Action is PINNING: Allowed ONLY if user is the author.
+        if not is_author:
+            if is_ajax:
+                return (
+                    jsonify({"success": False, "message": "Permission denied to pin."}),
+                    403,
+                )
+            flash(_("You can only pin your own messages."), "danger")
+            return redirect(url_for("bulletin_board"))
+    # --- END: NEW GRANULAR PERMISSION LOGIC ---
+
+    # If all checks pass, proceed with the action
+    note_to_pin.is_pinned = not note_to_pin.is_pinned
+    db.session.commit()
+
+    socketio.emit(
+        "note_pinned",
+        {
+            "note_id": note_to_pin.id,
+            "is_pinned": note_to_pin.is_pinned,
+        },
+        room=f"family_room_{note_to_pin.family_id}",
+    )
+
+    if is_ajax:
+        return jsonify({"success": True, "is_pinned": note_to_pin.is_pinned})
 
     return redirect(url_for("bulletin_board"))
 

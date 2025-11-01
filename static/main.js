@@ -72,6 +72,39 @@ document.addEventListener("DOMContentLoaded", () => {
     toast.show();
   };
 
+  // ADD these two new functions to main.js
+
+  /**
+   * Converts a UTC ISO timestamp string into a localized time string (e.g., "2:15 PM").
+   * @param {string} isoString - The UTC timestamp in ISO 8601 format.
+   * @returns {string} The formatted local time.
+   */
+  const formatLocalTime = (isoString) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    // Use navigator.language to respect user's locale (e.g., en-US vs en-GB)
+    return date.toLocaleTimeString(navigator.language, {
+      hour: "numeric",
+      minute: "2-digit", // Use '2-digit' for leading zeros (e.g., 14:05)
+      hour12: false, // This is the key change to force 24-hour format
+    });
+  };
+
+  /**
+   * Finds all elements with the class 'local-time' and converts their content.
+   */
+  const convertAllTimestamps = () => {
+    document.querySelectorAll(".local-time").forEach((el) => {
+      const isoString = el.dataset.timestamp;
+      if (isoString) {
+        el.textContent = formatLocalTime(isoString);
+      }
+    });
+  };
+
+  // Convert all timestamps on the page to the user's local time
+  convertAllTimestamps(); // <-- ADD THIS LINE
+
   // START: ADD THIS NEW CODE BLOCK
   // Check if the server rendered any flash messages into the window object
   if (window.flashMessages && window.flashMessages.length > 0) {
@@ -258,43 +291,119 @@ document.addEventListener("DOMContentLoaded", () => {
     // This will work for both the old list view and the new grid view
     document.getElementById(`event-${data.event_id}`)?.remove();
   });
-  socket.on("note_added", (data) => {
-    const notesList = document.getElementById("notes-list");
-    if (notesList && !document.getElementById(`note-${data.note.id}`)) {
-      notesList.querySelector(".alert")?.remove();
-      const newNoteElement = createNoteElement(data.note);
-      notesList.prepend(newNoteElement);
+  socket.on("note_added", async (data) => {
+    const chatContainer = document.getElementById("chat-container");
+    // Echo protection: check if the bubble already exists
+    if (!chatContainer || document.getElementById(`note-${data.note.id}`)) {
+      return;
+    }
+
+    try {
+      // Fetch the fully rendered HTML for the new bubble from our new internal route
+      const response = await fetch(
+        `/internal/render_bulletin_post/${data.note.id}`
+      );
+      if (!response.ok) return; // Don't do anything if the fetch fails
+
+      const newBubbleHtml = await response.text();
+
+      // Append the new bubble and scroll to the bottom
+      chatContainer.insertAdjacentHTML("beforeend", newBubbleHtml);
+      scrollToChatBottom();
+      // Convert timestamps again to catch the new one we just added
+      convertAllTimestamps(); // <-- ADD THIS LINE
+    } catch (error) {
+      console.error("Error fetching new bulletin post:", error);
     }
   });
+  // REPLACE the existing socket.on('note_deleted', ...) with this simplified version
   socket.on("note_deleted", (data) => {
-    const noteCard = document.getElementById(`note-${data.note_id}`);
-    if (noteCard) {
-      // Check if this note was inside the pinned list BEFORE removing it
-      const wasPinned = noteCard.closest("#pinned-notes-list");
+    const noteElement = document.getElementById(`note-${data.note_id}`);
 
-      noteCard.remove(); // Remove the element from the DOM
+    // If the deleted note was a pinned card, check if we need to hide the section
+    if (noteElement && noteElement.closest("#pinned-notes-container")) {
+      const pinnedContainer = document.getElementById("pinned-notes-container");
+      // Check if this is the *last* child being removed
+      if (pinnedContainer && pinnedContainer.children.length === 1) {
+        document.getElementById("pinned-notes-section").style.display = "none";
+        document.getElementById("pinned-notes-divider").classList.add("d-none");
+      }
+    }
 
-      // Now, if it was a pinned note, check if the container is empty
-      if (wasPinned) {
-        const pinnedNotesList = document.getElementById("pinned-notes-list");
-        const pinnedNotesSection = document.getElementById(
-          "pinned-notes-section"
+    // Now, simply remove the element, wherever it was.
+    if (noteElement) {
+      noteElement.remove();
+    }
+  });
+  // REPLACE the existing socket.on('note_pinned', ...) with this correct version
+  socket.on("note_pinned", async (data) => {
+    const { note_id, is_pinned } = data;
+    const noteElement = document.getElementById(`note-${note_id}`);
+
+    // First, remove the element from wherever it currently is.
+    if (noteElement) {
+      noteElement.remove();
+    }
+
+    if (is_pinned) {
+      // --- LOGIC FOR PINNING A NOTE ---
+      try {
+        // Fetch the new 'pinned card' HTML from the server
+        const response = await fetch(`/internal/render_pinned_post/${note_id}`);
+        if (!response.ok) return;
+        const newCardHtml = await response.text();
+
+        const pinnedContainer = document.getElementById(
+          "pinned-notes-container"
         );
+        const pinnedSection = document.getElementById("pinned-notes-section");
+        const pinnedDivider = document.getElementById("pinned-notes-divider");
 
-        // If the list exists and now has zero children, hide the whole section
-        if (
-          pinnedNotesList &&
-          pinnedNotesSection &&
-          pinnedNotesList.children.length === 0
-        ) {
-          pinnedNotesSection.style.display = "none";
+        if (pinnedContainer) {
+          // Make sure the pinned section is visible
+          if (pinnedSection) pinnedSection.style.display = "block";
+          if (pinnedDivider) pinnedDivider.classList.remove("d-none");
+
+          // Add the new card to the top of the pinned list
+          pinnedContainer.insertAdjacentHTML("afterbegin", newCardHtml);
         }
+      } catch (error) {
+        console.error("Error fetching pinned post:", error);
+      }
+    } else {
+      // --- LOGIC FOR UNPINNING A NOTE ---
+      try {
+        // Fetch the 'chat bubble' HTML from the server
+        const response = await fetch(
+          `/internal/render_bulletin_post/${note_id}`
+        );
+        if (!response.ok) return;
+        const newBubbleHtml = await response.text();
+
+        const chatContainer = document.getElementById("chat-container");
+        if (chatContainer) {
+          // Add the bubble back to the chat and scroll down
+          chatContainer.insertAdjacentHTML("beforeend", newBubbleHtml);
+          scrollToChatBottom();
+          convertAllTimestamps();
+        }
+
+        // Check if the pinned section is now empty and hide it if so
+        const pinnedContainer = document.getElementById(
+          "pinned-notes-container"
+        );
+        const pinnedSection = document.getElementById("pinned-notes-section");
+        const pinnedDivider = document.getElementById("pinned-notes-divider");
+
+        if (pinnedContainer && pinnedContainer.children.length === 0) {
+          if (pinnedSection) pinnedSection.style.display = "none";
+          if (pinnedDivider) pinnedDivider.classList.add("d-none");
+        }
+      } catch (error) {
+        console.error("Error fetching bulletin post:", error);
       }
     }
   });
-  socket.on("note_pinned", (data) =>
-    updateNotePinStatus(data.note_id, data.is_pinned)
-  );
   socket.on("meal_updated", (data) => {
     if (data.sid === socket.id) return;
     const cardBody = document.querySelector(
@@ -468,21 +577,6 @@ document.addEventListener("DOMContentLoaded", () => {
     li.innerHTML = `<div class="flex-grow-1 me-2"><div class="d-flex align-items-center"><span class="item-text-display flex-grow-1">${item.text}</span><button class="btn btn-sm btn-outline-secondary ms-2 item-edit-button"><i class="bi bi-pencil-square"></i></button></div><form action="/edit_item" method="POST" class="item-edit-form d-none"><input type="hidden" name="item_id" value="${item.id}"><div class="input-group"><input type="text" name="new_text" class="form-control form-control-sm" value="${item.text}"><button type="submit" class="btn btn-sm btn-outline-success">Save</button></div></form><small class="text-muted d-block">by ${item.author.username}</small></div><div><form action="/toggle_done" method="POST" class="d-inline" data-item-id="${item.id}"><input type="hidden" name="item_to_toggle" value="${item.id}"><button type="submit" class="btn btn-sm btn-success me-1">✓</button></form><form action="/delete_item" method="POST" class="d-inline confirm-delete" data-item-id="${item.id}"><input type="hidden" name="item_to_delete" value="${item.id}"><button type="submit" class="btn btn-sm btn-danger">X</button></form></div>`;
     return li;
   }
-  function createNoteElement(note) {
-    const noteCard = document.createElement("div");
-    noteCard.id = `note-${note.id}`;
-    noteCard.className = `card mb-3 ${note.is_pinned ? "border-primary" : ""}`;
-    noteCard.dataset.timestamp = note.raw_timestamp;
-    let deleteButtonHTML = "";
-    if (document.body.dataset.userId == note.author_id) {
-      deleteButtonHTML = `<form action="/delete_note" method="POST" class="note-delete-form confirm-delete" data-note-id="${note.id}"><input type="hidden" name="note_id" value="${note.id}"><button type="submit" class="btn-close" aria-label="Delete"></button></form>`;
-    }
-    const pinnedBadgeHTML = note.is_pinned
-      ? `<span class="badge bg-primary ms-2">Pinned</span>`
-      : "";
-    noteCard.innerHTML = `<div class="card-body d-flex justify-content-between"><div><p class="card-text fs-5">${note.content}</p><p class="card-subtitle text-muted" style="font-size: 0.8rem;">Posted by <strong>${note.author}</strong> on ${note.timestamp}${pinnedBadgeHTML}</p></div><div class="d-flex align-items-start"><form action="/pin_note" method="POST" class="note-pin-form me-2" data-note-id="${note.id}"><input type="hidden" name="note_id" value="${note.id}"><button type="submit" class="btn btn-sm btn-outline-primary" title="Pin Note"><i class="bi bi-pin-angle-fill"></i></button></form>${deleteButtonHTML}</div></div>`;
-    return noteCard;
-  }
   function createEventElement(event) {
     const eventCard = document.createElement("div");
     eventCard.id = `event-${event.id}`;
@@ -494,45 +588,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     eventCard.innerHTML = `<div class="card-body"><div class="d-flex justify-content-between"><div><h5 class="card-title">${event.title}</h5><p class="card-subtitle mb-2 text-muted">${event.formatted_date} at ${event.formatted_time}</p><small class="text-muted">Added by ${event.author.username}</small></div><div>${deleteButtonHTML}</div></div></div>`;
     return eventCard;
-  }
-  function updateNotePinStatus(noteId, isPinned) {
-    const noteCard = document.getElementById(`note-${noteId}`);
-    if (!noteCard) return;
-
-    // Get references to our new containers
-    const pinnedNotesSection = document.getElementById("pinned-notes-section");
-    const pinnedNotesList = document.getElementById("pinned-notes-list");
-    const regularNotesList = document.getElementById("notes-list");
-
-    // Visually update the card's style and badge
-    noteCard.classList.toggle("border-primary", isPinned);
-    let badge = noteCard.querySelector(".badge.bg-primary");
-    if (isPinned && !badge) {
-      badge = document.createElement("span");
-      badge.className = "badge bg-primary ms-2";
-      badge.textContent = "Pinned";
-      noteCard.querySelector(".card-subtitle").appendChild(badge);
-    } else if (!isPinned && badge) {
-      badge.remove();
-    }
-
-    if (isPinned) {
-      // --- This is the PINNING logic ---
-      if (pinnedNotesSection) pinnedNotesSection.style.display = "block"; // 1. Show the section
-      if (pinnedNotesList) pinnedNotesList.prepend(noteCard); // 2. Move the card to the top of the pinned list
-    } else {
-      // --- This is the UNPINNING logic ---
-      if (regularNotesList) regularNotesList.prepend(noteCard); // 1. Move the card back to the top of the regular list
-
-      // 2. If the pinned list is now empty, hide the entire section
-      if (
-        pinnedNotesList &&
-        pinnedNotesSection &&
-        pinnedNotesList.children.length === 0
-      ) {
-        pinnedNotesSection.style.display = "none";
-      }
-    }
   }
   function resetMealCellToEmpty(day, mealType) {
     const cellDisplay = document.getElementById(
@@ -578,6 +633,16 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  const scrollToChatBottom = () => {
+    const chatContainer = document.getElementById("chat-container");
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+  };
+
+  // Scroll chat to bottom on initial load
+  scrollToChatBottom(); // This call will now work correctly
 
   const handleFormSubmit = (form, event, callback) => {
     event.preventDefault();
@@ -993,7 +1058,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // Note Forms
       ".note-add-form": handleAddNote,
       ".note-delete-form": handleDeleteNote,
-      ".note-pin-form": handlePinNote,
+      // CORRECT THIS LINE:
+      ".note-pin-form": (form, data) => {}, // The socket event handles the UI update, so this does nothing.
       // Event Forms
       "#add-event-form": handleAddEventGrid, // Use the new handler for the grid
       'form[action^="/edit_event/"]': handleEditEventGrid,
@@ -1307,18 +1373,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   notificationManager.checkAllOnLoad();
   notificationManager.clearCurrentPageNotification();
-  const togglePasswordBtn = document.getElementById("toggle-password-btn");
-  const passwordInput = document.getElementById("password-input");
-  if (togglePasswordBtn && passwordInput) {
-    togglePasswordBtn.addEventListener("click", function () {
-      const type =
-        passwordInput.getAttribute("type") === "password" ? "text" : "password";
-      passwordInput.setAttribute("type", type);
-      this.querySelector("i").classList.toggle("bi-eye-slash-fill");
-      this.querySelector("i").classList.toggle("bi-eye-fill");
-    });
-  }
-
   // This listener for the "Generate Chores" button is a special case.
   // It has its own AJAX logic and doesn't need the confirmation modal,
   // so it remains separate from the delegated listener.
@@ -1646,6 +1700,73 @@ document.addEventListener("DOMContentLoaded", () => {
       const modal = bootstrap.Modal.getInstance(createListModalEl);
       if (modal) {
         modal.hide();
+      }
+    });
+  }
+  // ADD THIS CODE BLOCK TO main.js
+
+  // --- START: NEW ROBUST PASSWORD TOGGLE LOGIC ---
+  document.body.addEventListener("click", function (event) {
+    // Find the button that was actually clicked by checking for our new class
+    const toggleButton = event.target.closest(".toggle-password-button");
+
+    // If the click was not on a toggle button, do nothing.
+    if (!toggleButton) {
+      return;
+    }
+
+    // Get the ID of the target input from the button's data-target attribute
+    const targetInputSelector = toggleButton.dataset.target;
+    if (!targetInputSelector) {
+      return;
+    }
+
+    // Find the corresponding password input field using that ID
+    const passwordInput = document.querySelector(targetInputSelector);
+    if (!passwordInput) {
+      return;
+    }
+
+    // Toggle the input type between 'password' and 'text'
+    const type =
+      passwordInput.getAttribute("type") === "password" ? "text" : "password";
+    passwordInput.setAttribute("type", type);
+
+    // Toggle the icon on the button that was clicked
+    const icon = toggleButton.querySelector("i");
+    if (icon) {
+      icon.classList.toggle("bi-eye-slash-fill");
+      icon.classList.toggle("bi-eye-fill");
+    }
+  });
+  // --- END: NEW ROBUST PASSWORD TOGGLE LOGIC ---
+
+  // ADD THIS SECOND CODE BLOCK TO main.js
+
+  // --- START: NEW REGISTER FORM VALIDATION ---
+  const registerForm = document.getElementById("register-form");
+  if (registerForm) {
+    // Find the error message container we just added to the HTML
+    const errorDiv = document.getElementById("password-match-error");
+
+    registerForm.addEventListener("submit", function (event) {
+      const password = registerForm.querySelector(
+        "#register-password-input"
+      ).value;
+      const confirmPassword = registerForm.querySelector(
+        "#confirm-password-input"
+      ).value;
+
+      if (password !== confirmPassword) {
+        // Passwords do NOT match:
+        // 1. Prevent the form from submitting
+        event.preventDefault();
+        // 2. Show the error message by removing the 'd-none' class
+        errorDiv.classList.remove("d-none");
+      } else {
+        // Passwords DO match:
+        // 1. Ensure the error message is hidden
+        errorDiv.classList.add("d-none");
       }
     });
   }

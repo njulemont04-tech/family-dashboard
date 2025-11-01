@@ -1,0 +1,90 @@
+{# templates/_bulletin_post.html #} {% set is_author = current_user ==
+post.author %}
+
+<div
+  class="message-bubble-wrapper d-flex {% if is_author %}justify-content-end{% else %}justify-content-start{% endif %}"
+  id="note-{{ post.id }}"
+  data-timestamp="{{ post.timestamp.isoformat() }}"
+  data-note-id="{{ post.id }}"
+>
+  <div
+    class="message-bubble {% if is_author %}sent{% else %}received{% endif %}"
+  >
+    <div
+      class="message-header d-flex justify-content-between align-items-center"
+    >
+      <div class="author-info d-flex align-items-center">
+        <img
+          src="{{ post.author.avatar_url }}"
+          alt="{{ post.author.username }}"
+          class="avatar-sm me-2"
+        />
+        <strong class="author-name">{{ post.author.username }}</strong>
+      </div>
+      <div class="message-actions d-flex align-items-center">
+        <span
+          class="pinned-indicator me-2 {% if not post.is_pinned %}d-none{% endif %}"
+          title="{{ _('Pinned') }}"
+        >
+          <i class="bi bi-pin-angle-fill text-primary"></i>
+        </span>
+
+        {# --- START: NEW VISIBILITY LOGIC --- #} {# Only show the three-dots
+        menu if the current user IS the author. #} {% if post.author_id ==
+        current_user.id %}
+        <div class="dropdown">
+          <button
+            class="btn btn-sm btn-icon"
+            type="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            {# "Pin" action is only available to the post's author #}
+            <li>
+              <form
+                action="{{ url_for('pin_note') }}"
+                method="POST"
+                class="note-pin-form"
+                data-note-id="{{ post.id }}"
+              >
+                <input type="hidden" name="note_id" value="{{ post.id }}" />
+                <button type="submit" class="dropdown-item">
+                  <i class="bi bi-pin-angle-fill me-2"></i> {{ _('Pin') }}
+                </button>
+              </form>
+            </li>
+
+            {# "Delete" action is also only available to the author #}
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <form
+                action="{{ url_for('delete_note') }}"
+                method="POST"
+                class="note-delete-form confirm-delete"
+                data-note-id="{{ post.id }}"
+              >
+                <input type="hidden" name="note_id" value="{{ post.id }}" />
+                <button type="submit" class="dropdown-item text-danger">
+                  <i class="bi bi-trash me-2"></i> {{ _('Delete') }}
+                </button>
+              </form>
+            </li>
+          </ul>
+        </div>
+        {% endif %} {# --- END: NEW VISIBILITY LOGIC --- #}
+      </div>
+    </div>
+    <div class="message-content">{{ post.content }}</div>
+    <div class="message-timestamp text-end">
+      <span
+        class="local-time"
+        data-timestamp="{{ post.timestamp.isoformat() }}Z"
+      >
+        {{ post.timestamp.strftime('%H:%M') }}
+      </span>
+    </div>
+  </div>
+</div>

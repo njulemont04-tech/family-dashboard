@@ -25,26 +25,44 @@
           />
           <label for="floatingInput">{{ _('Username') }}</label>
         </div>
+
+        {# --- START: MODIFIED PASSWORD BLOCK --- #}
         <div class="input-group mb-3">
           <div class="form-floating">
             <input
               type="password"
               name="password"
               class="form-control"
-              id="password-input"
+              id="login-password-input"
+              {#
+              Changed
+              id
+              for
+              uniqueness
+              #}
               placeholder="{{ _('Password') }}"
               required
             />
-            <label for="password-input">{{ _('Password') }}</label>
+            <label for="login-password-input">{{ _('Password') }}</label>
           </div>
           <button
-            class="btn btn-outline-secondary"
+            class="btn btn-outline-secondary toggle-password-button"
+            {#
+            Added
+            class
+            #}
             type="button"
-            id="toggle-password-btn"
+            data-target="#login-password-input"
+            {#
+            Added
+            data-target
+            #}
           >
             <i class="bi bi-eye-slash-fill"></i>
           </button>
         </div>
+        {# --- END: MODIFIED PASSWORD BLOCK --- #}
+
         <button class="w-100 btn btn-lg btn-primary" type="submit">
           {{ _('Sign in') }}
         </button>
