@@ -1093,140 +1093,176 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- START: NEW CALENDAR GRID LOGIC ---
+  // =======================================================================
+  // START: CONSOLIDATED CALENDAR LOGIC (DESKTOP & MODALS)
+  // =======================================================================
 
   const addEventModalElement = document.getElementById("addEventModal");
-  if (addEventModalElement) {
+  const viewEventModalElement = document.getElementById("viewEventModal");
+
+  // This check ensures none of this code runs if we're not on the calendar page.
+  if (addEventModalElement && viewEventModalElement) {
+    // --- Get all modal-related elements ONCE ---
     const addEventModal = new bootstrap.Modal(addEventModalElement);
     const dateInput = document.getElementById("event-date-input");
     const modalTitle = document.getElementById("addEventModalLabel");
+    const addEventForm = document.getElementById("add-event-form");
+    const addEventSubmitBtn = addEventForm.querySelector(
+      'button[type="submit"]'
+    );
 
-    // 1. Populate modal with the date of the clicked cell
-    addEventModalElement.addEventListener("show.bs.modal", function (event) {
-      const cell = event.relatedTarget;
-      // Exit if modal was triggered by something other than a calendar cell
-      if (!cell || !cell.dataset.date) return;
+    // --- ADD THESE FOUR LINES ---
+    const eventHourSelect = document.getElementById("event-hour");
+    const eventMinuteSelect = document.getElementById("event-minute");
+    const hiddenTimeInput = document.getElementById("event-time-hidden");
+    const timeSelectGroup = document.getElementById("addEventModal"); // The whole modal
+    // --- END OF ADDITION ---
 
-      const date = cell.dataset.date;
-      dateInput.value = date;
+    // --- NEW LOGIC for managing the time dropdowns ---
+    if (timeSelectGroup) {
+      // Function to update the hidden input
+      const updateHiddenTime = () => {
+        const hour = eventHourSelect.value;
+        const minute = eventMinuteSelect.value;
+        hiddenTimeInput.value = `${hour}:${minute}`;
+      };
 
-      const dateObj = new Date(date + "T00:00:00"); // Add time to avoid timezone issues
-      // Use a simple, reliable format for the title
-      modalTitle.textContent = `Add Event for ${date}`;
+      // Add listeners to both dropdowns
+      eventHourSelect.addEventListener("change", updateHiddenTime);
+      eventMinuteSelect.addEventListener("change", updateHiddenTime);
 
-      // Reset form fields
-      document.getElementById("add-event-form").reset();
-    });
-  }
+      // Set an initial value when the page loads
+      updateHiddenTime();
+    }
+    // --- END OF NEW LOGIC ---
 
-  // Reset the Add/Edit modal to its "Add" state when hidden
-  const addEventModalToReset = document.getElementById("addEventModal");
-  if (addEventModalToReset) {
-    addEventModalToReset.addEventListener("hidden.bs.modal", () => {
-      const form = document.getElementById("add-event-form");
-      const modalLabel = document.getElementById("addEventModalLabel");
-      const submitBtn = form.querySelector('button[type="submit"]');
-
-      form.action = "/add_event";
-      modalLabel.textContent = "Add Event";
-      submitBtn.textContent = "Add Event";
-      form.reset();
-    });
-  }
-
-  // --- START: NEW VIEW/DELETE EVENT MODAL LOGIC ---
-
-  const viewEventModalElement = document.getElementById("viewEventModal");
-  if (viewEventModalElement) {
     const viewEventModal = new bootstrap.Modal(viewEventModalElement);
     const titleEl = document.getElementById("view-event-title");
     const timeEl = document.getElementById("view-event-time");
     const authorEl = document.getElementById("view-event-author");
     const deleteBtn = document.getElementById("delete-event-btn");
-    const deleteForm = document.querySelector(".event-delete-form");
-    const deleteInput = document.getElementById("delete-event-id-input");
+    const editBtn = document.getElementById("edit-event-btn");
+    const authorActions = document.getElementById("event-author-actions");
 
-    // 1. Populate the modal with data from the clicked event badge
+    // --- Logic for the ADD/EDIT Modal ---
+
+    // 1. Dedicated listener for clicks on the DESKTOP calendar grid to ADD an event.
+    const calendarGrid = document.querySelector(".calendar-grid");
+    if (calendarGrid) {
+      calendarGrid.addEventListener("click", (e) => {
+        const cell = e.target.closest(".calendar-day");
+        // This makes sure we don't trigger the modal when clicking an existing event badge.
+        const badge = e.target.closest(".event-badge");
+
+        if (cell && !badge && cell.dataset.date) {
+          // Explicitly set up the modal for a clean "Add" operation.
+          addEventForm.action = "/add_event";
+          modalTitle.textContent = `Add Event for ${cell.dataset.date}`;
+          addEventSubmitBtn.textContent = "Add Event";
+          dateInput.value = cell.dataset.date;
+          addEventForm.reset(); // Reset form fields
+          addEventModal.show();
+        }
+      });
+    }
+
+    // 2. Reset the Add/Edit modal to its "Add" state ONLY when it's hidden.
+    // This is the safest way to clean up after both adding and editing.
+    addEventModalElement.addEventListener("hidden.bs.modal", () => {
+      addEventForm.action = "/add_event";
+      modalTitle.textContent = "Add Event";
+      addEventSubmitBtn.textContent = "Add Event";
+      addEventForm.reset();
+    });
+
+    // --- Logic for the VIEW Modal ---
+
+    // 1. Populate the VIEW modal with data from the clicked event badge/item.
     viewEventModalElement.addEventListener("show.bs.modal", (event) => {
-      const badge = event.relatedTarget;
-      if (!badge) return;
+      const triggerElement = event.relatedTarget;
+      if (!triggerElement) return;
 
-      // Store data on the modal element itself for easy access by other listeners
-      const dataset = badge.dataset;
+      const dataset = triggerElement.dataset;
       viewEventModalElement.dataset.eventId = dataset.eventId;
       viewEventModalElement.dataset.eventTitle = dataset.eventTitle;
       viewEventModalElement.dataset.eventTime = dataset.eventTime;
       viewEventModalElement.dataset.eventAuthor = dataset.eventAuthor;
       viewEventModalElement.dataset.eventAuthorId = dataset.eventAuthorId;
-      // The date comes from the parent cell
-      viewEventModalElement.dataset.eventDate =
-        badge.closest(".calendar-day").dataset.date;
 
-      // Update the modal's content
+      // For desktop, date is on parent. For mobile, it's not, so we find it in our state.
+      if (triggerElement.closest(".calendar-day")) {
+        viewEventModalElement.dataset.eventDate =
+          triggerElement.closest(".calendar-day").dataset.date;
+      } else if (window.calendarEvents) {
+        const eventState = window.calendarEvents.find(
+          (e) => e.eventId == dataset.eventId
+        );
+        if (eventState) {
+          viewEventModalElement.dataset.eventDate = eventState.date;
+        }
+      }
+
       titleEl.textContent = dataset.eventTitle;
       timeEl.textContent = dataset.eventTime;
       authorEl.textContent = dataset.eventAuthor;
 
-      deleteInput.value = dataset.eventId;
-
-      // Show/hide the entire actions div based on authorship
-      const authorActions = document.getElementById("event-author-actions");
       const currentUserId = document.body.dataset.userId;
-      if (currentUserId === dataset.eventAuthorId) {
-        authorActions.style.display = "block";
-      } else {
-        authorActions.style.display = "none";
+      authorActions.style.display =
+        currentUserId === dataset.eventAuthorId ? "block" : "none";
+    });
+
+    // 2. Handle the "Delete Event" button click inside the VIEW modal.
+    deleteBtn.addEventListener("click", () => {
+      const formToTrigger = document.querySelector(".event-delete-form");
+      const idInput = document.getElementById("delete-event-id-input");
+      const eventId = viewEventModalElement.dataset.eventId;
+
+      if (formToTrigger && idInput && eventId) {
+        idInput.value = eventId;
+        viewEventModal.hide();
+        formToTrigger.dispatchEvent(
+          new Event("submit", { bubbles: true, cancelable: true })
+        );
       }
     });
 
-    // 2. Handle the "Delete Event" button click
-    deleteBtn.addEventListener("click", () => {
-      // This reuses your existing confirmation modal logic perfectly.
-      // We tell the confirmation modal which form to submit when confirmed.
-      formToSubmit = deleteForm;
-      callbackToExecute = handleDeleteEvent; // Your existing handler
-
-      // Hide the view modal before showing the confirmation modal
-      viewEventModal.hide();
-      confirmationModal.show();
-    });
-
-    const editBtn = document.getElementById("edit-event-btn");
-
+    // 3. Handle the "Edit Event" button click inside the VIEW modal.
     editBtn.addEventListener("click", () => {
-      // Get the "Add/Edit" modal elements
-      const addEventModal = bootstrap.Modal.getInstance(
-        document.getElementById("addEventModal")
-      );
-      const addEventForm = document.getElementById("add-event-form");
-      const addEventModalLabel = document.getElementById("addEventModalLabel");
-      const addEventSubmitBtn = addEventForm.querySelector(
-        'button[type="submit"]'
-      );
-
-      // Get data stored on the view modal
       const dataset = viewEventModalElement.dataset;
+
+      // Get the 24-hour time string (e.g., "14:30")
       const time24h = new Date("1970-01-01 " + dataset.eventTime)
         .toTimeString()
         .substring(0, 5);
 
-      // Pre-fill the form
+      // --- THIS IS THE NEW LOGIC ---
+      // Split the time into hour and minute parts
+      const [hour, minute] = time24h.split(":");
+
+      // Pre-fill the Add/Edit modal's form
       addEventForm.querySelector("#event-title").value = dataset.eventTitle;
-      addEventForm.querySelector("#event-time").value = time24h;
-      addEventForm.querySelector("#event-date-input").value = dataset.eventDate;
+      dateInput.value = dataset.eventDate;
+
+      // Set the values of our new dropdowns
+      eventHourSelect.value = hour;
+      eventMinuteSelect.value = minute;
+
+      // Manually update the hidden input to be sure it's correct
+      hiddenTimeInput.value = time24h;
+      // --- END OF NEW LOGIC ---
 
       // Change the form's action and the modal's title/button text
       addEventForm.action = `/edit_event/${dataset.eventId}`;
-      addEventModalLabel.textContent = "Edit Event";
+      modalTitle.textContent = "Edit Event";
       addEventSubmitBtn.textContent = "Update Event";
 
-      // Close the view modal and open the edit modal
-      bootstrap.Modal.getInstance(viewEventModalElement).hide();
+      viewEventModal.hide();
       addEventModal.show();
     });
   }
-
-  // --- END: NEW VIEW/DELETE EVENT MODAL LOGIC ---
+  // =======================================================================
+  // END: CONSOLIDATED CALENDAR LOGIC
+  // =======================================================================
 
   // --- MEAL PLANNER MODAL LOGIC ---
   const mealModalElement = document.getElementById("mealModal");
@@ -1770,4 +1806,255 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+  // =======================================================
+  // START: NEW MOBILE CALENDAR & AGENDA VIEW LOGIC
+  // =======================================================
+  const mobileCalendarContainer = document.getElementById(
+    "mobile-month-navigator"
+  );
+  if (mobileCalendarContainer) {
+    // --- A. HELPER FUNCTIONS ---
+
+    // This array will be our single source of truth for the mobile view's state.
+    window.calendarEvents = [];
+
+    /**
+     * Parses all event data from the desktop grid ONCE on page load to populate our state.
+     */
+    const initializeEventsState = () => {
+      calendarEvents = []; // Reset the array
+      document.querySelectorAll(".event-badge").forEach((badge) => {
+        const eventData = { ...badge.dataset };
+        eventData.date = badge.closest(".calendar-day").dataset.date;
+        calendarEvents.push(eventData);
+      });
+    };
+
+    /**
+     * Renders the compact, interactive month navigator.
+     * @param {Array} allEvents - The complete list of events for the month.
+     * @param {string} selectedDateStr - The currently selected date string ('YYYY-MM-DD').
+     * @param {string} todayDateStr - Today's date string ('YYYY-MM-DD').
+     * @param {string} currentMonthStr - The current month being viewed ('YYYY-MM').
+     */
+    const renderMobileMonthNavigator = (
+      selectedDateStr,
+      todayDateStr,
+      currentMonthStr
+    ) => {
+      const navigator = document.getElementById("mobile-month-navigator");
+      navigator.dataset.selectedDate = selectedDateStr; // Store state
+      let html =
+        '<div class="mobile-cal-header">Mo</div><div class="mobile-cal-header">Tu</div><div class="mobile-cal-header">We</div><div class="mobile-cal-header">Th</div><div class="mobile-cal-header">Fr</div><div class="mobile-cal-header">Sa</div><div class="mobile-cal-header">Su</div>';
+
+      const eventDates = new Set(calendarEvents.map((e) => e.date)); // Use state variable
+      const firstDayCell = document.querySelector(
+        ".calendar-grid tbody tr:first-child td:first-child"
+      );
+      let currentDate = new Date(firstDayCell.dataset.date + "T12:00:00");
+
+      for (let i = 0; i < 42; i++) {
+        // Loop up to 6 weeks for all possible layouts
+        const dayDateStr = currentDate.toISOString().split("T")[0];
+        const dayMonthStr = dayDateStr.substring(0, 7);
+
+        let classes = "mobile-cal-day";
+        if (dayMonthStr !== currentMonthStr) classes += " other-month";
+        if (dayDateStr === todayDateStr) classes += " is-today";
+        if (dayDateStr === selectedDateStr) classes += " is-selected";
+
+        html += `<div class="${classes}" data-date="${dayDateStr}">
+                    ${currentDate.getDate()}
+                    ${
+                      eventDates.has(dayDateStr)
+                        ? '<div class="event-dot"></div>'
+                        : ""
+                    }
+                </div>`;
+
+        currentDate.setDate(currentDate.getDate() + 1);
+        // Stop if we've rendered past the last cell in the grid
+        if (
+          document.querySelector(`.calendar-day[data-date="${dayDateStr}"]`) ===
+          null
+        )
+          break;
+      }
+      navigator.innerHTML = html;
+    };
+
+    /**
+     * Renders the scrollable agenda list for a specific day.
+     * @param {string} dateStr - The date to render events for ('YYYY-MM-DD').
+     * @param {Array} allEvents - The complete list of events for the month.
+     */
+    const renderAgendaForDate = (dateStr) => {
+      const agendaList = document.getElementById("mobile-agenda-list");
+      const eventsForDay = calendarEvents // Use state variable
+        .filter((e) => e.date === dateStr)
+        .sort((a, b) => a.eventTime.localeCompare(b.eventTime)); // Sort by time
+
+      if (eventsForDay.length === 0) {
+        agendaList.innerHTML = `
+                <div class="agenda-empty-state">
+                    <i class="bi bi-calendar-check"></i>
+                    <p>No events scheduled.</p>
+                </div>
+            `;
+        return;
+      }
+
+      let html = '<div class="card shadow-sm">';
+      eventsForDay.forEach((event) => {
+        // Add all necessary data attributes to the agenda item so the view modal can use it.
+        html += `
+            <div class="agenda-item" 
+                 data-event-id="${event.eventId}"
+                 data-event-title="${event.eventTitle}"
+                 data-event-time="${event.eventTime}"
+                 data-event-author="${event.eventAuthor}"
+                 data-event-author-id="${event.eventAuthorId}">
+                <div class="agenda-time">${event.eventTime}</div>
+                <div class="agenda-details">
+                    <div class="agenda-title">${event.eventTitle}</div>
+                    <div class="agenda-author">Added by ${event.eventAuthor}</div>
+                </div>
+                <i class="bi bi-chevron-right text-muted"></i>
+            </div>
+            `;
+      });
+      html += "</div>";
+      agendaList.innerHTML = html;
+    };
+
+    /**
+     * Main function to re-render the entire mobile view.
+     * Called on load and after any real-time update.
+     */
+    const refreshMobileCalendar = () => {
+      const todayCell = document.querySelector(".calendar-day.today");
+      const currentMonthStr = todayCell
+        ? todayCell.dataset.date.substring(0, 7)
+        : document.querySelector(".calendar-day").dataset.date.substring(0, 7);
+      const todayDateStr = todayCell ? todayCell.dataset.date : null;
+      const selectedDateStr =
+        document.getElementById("mobile-month-navigator").dataset
+          .selectedDate || todayDateStr;
+
+      // No longer need to parse events here. We just render from state.
+      renderMobileMonthNavigator(
+        selectedDateStr,
+        todayDateStr,
+        currentMonthStr
+      );
+      renderAgendaForDate(selectedDateStr);
+    };
+
+    // --- B. INITIALIZATION & EVENT LISTENERS ---
+
+    // 1. Initial Render on Page Load
+    initializeEventsState();
+    refreshMobileCalendar();
+
+    // 2. Handle Tapping a Day in the Navigator
+    mobileCalendarContainer.addEventListener("click", (e) => {
+      const dayElement = e.target.closest(".mobile-cal-day");
+      if (!dayElement || dayElement.classList.contains("other-month")) return;
+
+      const newSelectedDate = dayElement.dataset.date;
+
+      // Re-render navigator to update the 'is-selected' class
+      const todayCell = document.querySelector(".calendar-day.today");
+      const todayDateStr = todayCell ? todayCell.dataset.date : null;
+      const currentMonthStr = todayDateStr
+        ? todayDateStr.substring(0, 7)
+        : document.querySelector(".calendar-day").dataset.date.substring(0, 7);
+
+      // No need to parse events, just render.
+      renderMobileMonthNavigator(
+        newSelectedDate,
+        todayDateStr,
+        currentMonthStr
+      );
+      renderAgendaForDate(newSelectedDate);
+    });
+
+    // 3. Handle Tapping an Agenda Item to View Details
+    document
+      .getElementById("mobile-agenda-list")
+      .addEventListener("click", (e) => {
+        const item = e.target.closest(".agenda-item");
+        if (!item) return;
+
+        const viewModalEl = document.getElementById("viewEventModal");
+        const viewModal = bootstrap.Modal.getInstance(viewModalEl);
+        if (viewModal) {
+          // Pass the item as the 'relatedTarget' so the modal's 'show.bs.modal'
+          // event can read its data attributes, just like it does for event badges.
+          viewModal.show(item);
+        }
+      });
+
+    // 4. Handle FAB click to open "Add Event" modal for the selected day
+    const mobileFab = document.getElementById("mobile-add-event-fab");
+    if (mobileFab) {
+      mobileFab.addEventListener("click", () => {
+        const selectedDate = document.getElementById("mobile-month-navigator")
+          .dataset.selectedDate;
+        const dateInput = document.getElementById("event-date-input");
+        const modalTitle = document.getElementById("addEventModalLabel");
+
+        if (selectedDate && dateInput && modalTitle) {
+          // Pre-fill the modal with the currently selected date in the mobile view
+          dateInput.value = selectedDate;
+          modalTitle.textContent = `Add Event for ${selectedDate}`;
+        }
+      });
+    }
+
+    // --- C. REAL-TIME SYNCHRONIZATION ---
+    // We now update our local state directly from socket messages, then re-render.
+
+    socket.on("event_added", (data) => {
+      // Create a new event object in the same format as our state objects.
+      const newEvent = {
+        eventId: data.event.id.toString(),
+        eventTitle: data.event.title,
+        eventTime: data.event.formatted_time,
+        eventAuthor: data.event.author.username,
+        eventAuthorId: data.event.author.id.toString(),
+        date: data.event.date,
+      };
+      // Add the new event to our state.
+      calendarEvents.push(newEvent);
+      // Re-render the mobile UI.
+      refreshMobileCalendar();
+    });
+
+    socket.on("event_deleted", (data) => {
+      // Filter our state to remove the deleted event.
+      calendarEvents = calendarEvents.filter(
+        (event) => event.eventId != data.event_id
+      );
+      // Re-render the mobile UI.
+      refreshMobileCalendar();
+    });
+
+    socket.on("event_updated", (data) => {
+      // Find the event in our state.
+      const eventToUpdate = calendarEvents.find(
+        (event) => event.eventId == data.event.id
+      );
+      if (eventToUpdate) {
+        // Update its properties.
+        eventToUpdate.eventTitle = data.event.title;
+        eventToUpdate.eventTime = data.event.formatted_time;
+      }
+      // Re-render the mobile UI.
+      refreshMobileCalendar();
+    });
+  }
+  // =======================================================
+  // END: NEW MOBILE CALENDAR & AGENDA VIEW LOGIC
+  // =======================================================
 });

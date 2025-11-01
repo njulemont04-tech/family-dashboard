@@ -2,7 +2,7 @@
 endblock %} {% block content %}
 
 <!-- ================================================================== -->
-<!-- START: NEW DEDICATED CALENDAR HEADER                             -->
+<!-- START: RESPONSIVE CALENDAR HEADER (No changes here)              -->
 <!-- ================================================================== -->
 
 <!-- 1. Mobile Header: Displays the "Calendar" title and a back button -->
@@ -60,63 +60,89 @@ endblock %} {% block content %}
 </div>
 
 <!-- ================================================================== -->
-<!-- END: NEW DEDICATED CALENDAR HEADER                               -->
+<!-- END: RESPONSIVE CALENDAR HEADER                                  -->
 <!-- ================================================================== -->
 
-<!-- Calendar Grid -->
-<div class="table-responsive">
-  <table class="table table-bordered calendar-grid">
-    <thead>
-      <tr class="text-center">
-        <th>{{ _('Monday') }}</th>
-        <th>{{ _('Tuesday') }}</th>
-        <th>{{ _('Wednesday') }}</th>
-        <th>{{ _('Thursday') }}</th>
-        <th>{{ _('Friday') }}</th>
-        <th>{{ _('Saturday') }}</th>
-        <th>{{ _('Sunday') }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for week in month_calendar %}
-      <tr>
-        {% for day_date in week %} {% set is_today = (day_date == today) %} {%
-        set is_current_month = (day_date.month == current_date.month) %}
-        <td
-          class="calendar-day {% if not is_current_month %}other-month{% endif %} {% if is_today %}today{% endif %}"
-          data-bs-toggle="modal"
-          data-bs-target="#addEventModal"
-          data-date="{{ day_date.strftime('%Y-%m-%d') }}"
-        >
-          <div class="day-number">{{ day_date.day }}</div>
-          <div class="events-container">
-            {% for event in events_by_day.get(day_date.day, []) %} {# This check
-            is crucial for days like '1' which can appear from prev/next month
-            #} {% if event.date == day_date %}
-            <div
-              class="event-badge"
-              id="event-{{ event.id }}"
-              data-bs-toggle="modal"
-              data-bs-target="#viewEventModal"
-              data-event-id="{{ event.id }}"
-              data-event-title="{{ event.title }}"
-              data-event-time="{{ event.time.strftime('%I:%M %p') }}"
-              data-event-author="{{ event.author.username }}"
-              data-event-author-id="{{ event.author_id }}"
-            >
-              <span class="event-time">{{ event.time.strftime('%H:%M') }}</span>
-              {{ event.title }}
+<!-- ================================================================== -->
+<!-- START: DESKTOP CALENDAR GRID (Visible on lg screens and up)      -->
+<!-- ================================================================== -->
+<div class="d-none d-lg-block">
+  <div class="table-responsive">
+    <table class="table table-bordered calendar-grid">
+      <thead>
+        <tr class="text-center">
+          <th>{{ _('Monday') }}</th>
+          <th>{{ _('Tuesday') }}</th>
+          <th>{{ _('Wednesday') }}</th>
+          <th>{{ _('Thursday') }}</th>
+          <th>{{ _('Friday') }}</th>
+          <th>{{ _('Saturday') }}</th>
+          <th>{{ _('Sunday') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for week in month_calendar %}
+        <tr>
+          {% for day_date in week %} {% set is_today = (day_date == today) %} {%
+          set is_current_month = (day_date.month == current_date.month) %}
+          <td
+            class="calendar-day {% if not is_current_month %}other-month{% endif %} {% if is_today %}today{% endif %}"
+            data-bs-toggle="modal"
+            data-bs-target="#addEventModal"
+            data-date="{{ day_date.strftime('%Y-%m-%d') }}"
+          >
+            <div class="day-number">{{ day_date.day }}</div>
+            <div class="events-container">
+              {% for event in events_by_day.get(day_date.day, []) %} {# This
+              check is crucial for days like '1' which can appear from prev/next
+              month #} {% if event.date == day_date %}
+              <div
+                class="event-badge"
+                id="event-{{ event.id }}"
+                data-bs-toggle="modal"
+                data-bs-target="#viewEventModal"
+                data-event-id="{{ event.id }}"
+                data-event-title="{{ event.title }}"
+                data-event-time="{{ event.time.strftime('%H:%M') }}"
+                data-event-author="{{ event.author.username }}"
+                data-event-author-id="{{ event.author_id }}"
+              >
+                <span class="event-time"
+                  >{{ event.time.strftime('%H:%M') }}</span
+                >
+                {{ event.title }}
+              </div>
+              {% endif %} {% endfor %}
             </div>
-            {% endif %} {% endfor %}
-          </div>
-        </td>
+          </td>
+          {% endfor %}
+        </tr>
         {% endfor %}
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+      </tbody>
+    </table>
+  </div>
 </div>
+<!-- ================================================================== -->
+<!-- END: DESKTOP CALENDAR GRID                                       -->
+<!-- ================================================================== -->
 
+<!-- ================================================================== -->
+<!-- START: MOBILE CALENDAR VIEW (Visible on screens smaller than lg) -->
+<!-- ================================================================== -->
+<div class="d-lg-none">
+  <!-- JavaScript will render the compact month grid here -->
+  <div id="mobile-month-navigator" class="mb-4"></div>
+
+  <!-- JavaScript will render the event list for the selected day here -->
+  <div id="mobile-agenda-list"></div>
+</div>
+<!-- ================================================================== -->
+<!-- END: MOBILE CALENDAR VIEW                                        -->
+<!-- ================================================================== -->
+
+<!-- ================================================================== -->
+<!-- START: MODALS & FORMS (Unchanged, used by both views)            -->
+<!-- ================================================================== -->
 <!-- Add Event Modal -->
 <div
   class="modal fade"
@@ -124,6 +150,8 @@ endblock %} {% block content %}
   tabindex="-1"
   aria-labelledby="addEventModalLabel"
   aria-hidden="true"
+  data-bs-backdrop="static"
+  data-bs-keyboard="false"
 >
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -160,12 +188,30 @@ endblock %} {% block content %}
             />
           </div>
           <div class="mb-3">
-            <label for="event-time" class="form-label">{{ _('Time') }}</label>
+            <label for="event-hour" class="form-label">{{ _('Time') }}</label>
+            <div class="input-group">
+              <select class="form-select" id="event-hour" aria-label="Hour">
+                {% for i in range(24) %}
+                <option value="{{ '%02d'|format(i) }}">
+                  {{ '%02d'|format(i) }}
+                </option>
+                {% endfor %}
+              </select>
+              <span class="input-group-text">:</span>
+              <select class="form-select" id="event-minute" aria-label="Minute">
+                {% for i in range(0, 60, 5) %} {# 5 minute increments #}
+                <option value="{{ '%02d'|format(i) }}">
+                  {{ '%02d'|format(i) }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <!-- This hidden input will hold the combined HH:MM value for the form -->
             <input
-              type="time"
-              class="form-control"
-              id="event-time"
+              type="hidden"
+              id="event-time-hidden"
               name="time"
+              value="00:00"
               required
             />
           </div>
@@ -186,9 +232,7 @@ endblock %} {% block content %}
     </div>
   </div>
 </div>
-<!-- ========================================================== -->
-<!-- ADD THE NEW "VIEW EVENT" MODAL BLOCK RIGHT HERE -->
-<!-- ========================================================== -->
+
 <!-- View/Delete Event Modal -->
 <div
   class="modal fade"
@@ -251,7 +295,24 @@ endblock %} {% block content %}
 >
   <input type="hidden" name="event_id" id="delete-event-id-input" value="" />
 </form>
-<!-- ========================================================== -->
-<!-- END OF THE NEW CODE BLOCK -->
-<!-- ========================================================== -->
+<!-- ================================================================== -->
+<!-- END: MODALS & FORMS                                              -->
+<!-- ================================================================== -->
+
+<!-- ================================================================== -->
+<!-- START: MOBILE FLOATING ACTION BUTTON (FAB)                       -->
+<!-- ================================================================== -->
+<button
+  type="button"
+  class="btn btn-primary btn-fab d-lg-none"
+  data-bs-toggle="modal"
+  data-bs-target="#addEventModal"
+  id="mobile-add-event-fab"
+>
+  <i class="bi bi-plus-lg"></i>
+</button>
+<!-- ================================================================== -->
+<!-- END: MOBILE FLOATING ACTION BUTTON                               -->
+<!-- ================================================================== -->
+
 {% endblock %}

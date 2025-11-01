@@ -930,7 +930,7 @@ def add_event(current_family):
             "date": new_event.date.strftime("%Y-%m-%d"),
             "time": new_event.time.strftime("%H:%M"),
             "formatted_date": new_event.date.strftime("%a, %b %d"),
-            "formatted_time": new_event.time.strftime("%I:%M %p"),
+            "formatted_time": new_event.time.strftime("%H:%M"),
             "author": {
                 "username": new_event.author.username,
                 "id": new_event.author.id,
@@ -978,7 +978,7 @@ def delete_event():
         if is_ajax:
             return jsonify({"success": True})
 
-    return redirect(url_for("calendar"))
+    return redirect(url_for("calendar_view"))  # <--- CORRECTED LINE
 
 
 @app.route("/edit_event/<int:event_id>", methods=["POST"])
@@ -1016,7 +1016,7 @@ def edit_event(current_family, event_id):
                 "id": event_to_edit.author.id,
             },
             # Add formatted time for consistency with view modal
-            "formatted_time": event_to_edit.time.strftime("%I:%M %p"),
+            "formatted_time": event_to_edit.time.strftime("%H:%M"),
         }
 
         # Emit a new event to notify all clients of the update
