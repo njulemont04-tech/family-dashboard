@@ -1976,6 +1976,12 @@ def view_list(current_family, list_id):
     # --- END: THE FIX ---
 
 
+@app.route("/healthz")
+def health_check():
+    """A simple health check endpoint for the cron job to ping."""
+    return "OK", 200
+
+
 # --- END: NEW CHORE MANAGEMENT ROUTES ---
 
 
