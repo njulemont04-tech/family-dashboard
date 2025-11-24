@@ -35,8 +35,6 @@ from flask_bcrypt import Bcrypt
 from functools import wraps
 from flask_babel import Babel, gettext as _
 
-from sqlalchemy import text
-
 # --- START: NEW WEBSOCKET IMPORTS ---
 from flask_socketio import SocketIO, emit, join_room
 
@@ -2254,52 +2252,6 @@ def handle_save_meal(data):
 def page_not_found(e):
     # note that we set the 404 status code explicitly
     return render_template("404.html"), 404
-
-
-@app.route("/db_fix_chores")
-@login_required
-def db_fix_chores():
-    # Security: Only allow the Admin (you) to run this
-    if current_user.id != current_user.owned_families[0].owner_id:
-        return "Unauthorized", 403
-
-    try:
-        with db.engine.connect() as conn:
-            # Add the new columns safely. If they exist, it does nothing.
-            conn.execute(
-                text(
-                    "ALTER TABLE chore ADD COLUMN IF NOT EXISTS frequency_days INTEGER DEFAULT 7"
-                )
-            )
-            conn.execute(
-                text(
-                    "ALTER TABLE chore ADD COLUMN IF NOT EXISTS last_generated_date DATE"
-                )
-            )
-            conn.commit()
-        return "Database updated successfully! You can now use custom frequencies."
-    except Exception as e:
-        return f"Error: {e}"
-
-
-@app.route("/db_check_columns")
-def db_check_columns():
-    from sqlalchemy import inspect
-
-    # Inspect the database engine to find the table structure
-    inspector = inspect(db.engine)
-
-    # Get all columns for the 'chore' table
-    columns = [col["name"] for col in inspector.get_columns("chore")]
-
-    # Return them as a JSON list
-    return jsonify(
-        {
-            "table": "chore",
-            "columns": columns,
-            "success": "frequency_days" in columns and "last_generated_date" in columns,
-        }
-    )
 
 
 if __name__ == "__main__":
