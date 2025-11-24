@@ -1064,3 +1064,21 @@ h6 {
   font-size: 1.75rem; /* Make the icon larger */
   line-height: 1;
 }
+
+/* Color Selection Styling */
+.btn-check:checked + label {
+  /* Create a dark ring around the selected circle */
+  outline: 3px solid #343a40;
+  outline-offset: 2px;
+
+  /* Make it slightly larger */
+  transform: scale(1.1);
+
+  /* Add a shadow */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Add smooth transition for the effect */
+.btn-check + label {
+  transition: all 0.2s ease-in-out;
+}

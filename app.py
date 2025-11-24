@@ -23,6 +23,7 @@ from flask import (
 from flask import json
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 from flask_login import (
     LoginManager,
     UserMixin,
@@ -34,6 +35,9 @@ from flask_login import (
 from flask_bcrypt import Bcrypt
 from functools import wraps
 from flask_babel import Babel, gettext as _
+
+from dateutil.rrule import rrule, DAILY, WEEKLY, MONTHLY, YEARLY
+from dateutil.relativedelta import relativedelta
 
 # --- START: NEW WEBSOCKET IMPORTS ---
 from flask_socketio import SocketIO, emit, join_room
@@ -204,12 +208,27 @@ class Item(db.Model):
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    time = db.Column(db.Time, nullable=False)
+
+    # Timing
+    date = db.Column(db.Date, nullable=False)  # The START date of the series or event
+    time = db.Column(db.Time, nullable=True)  # Start Time
+    end_time = db.Column(db.Time, nullable=True)  # End Time (Duration)
+    is_all_day = db.Column(db.Boolean, default=False)
+
+    # Appearance
+    category = db.Column(db.String(50), default="general")
+    color = db.Column(db.String(20), default="#0d6efd")
+
+    # Recurrence Engine (The Efficient Part)
+    # frequency: 'none', 'daily', 'weekly', 'monthly', 'yearly'
+    recurrence_type = db.Column(db.String(20), default="none")
+    # interval: e.g., 2 means "Every 2 weeks"
+    recurrence_interval = db.Column(db.Integer, default=1)
+    # end_date: When does the repeating stop? (Null means forever)
+    recurrence_end_date = db.Column(db.Date, nullable=True)
+
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    # CHANGED: Now links to a family
     family_id = db.Column(db.Integer, db.ForeignKey("family.id"), nullable=False)
-    # We still want to know who created the event
     author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     author = db.relationship("User", backref="events")
 
@@ -904,7 +923,7 @@ def get_notifications_context(current_family):
 @login_required
 @family_required
 def calendar_view(current_family):
-    # Determine the year and month to display. Default to the current month.
+    # 1. Get View Range (Month)
     try:
         year = int(request.args.get("year", datetime.utcnow().year))
         month = int(request.args.get("month", datetime.utcnow().month))
@@ -912,39 +931,113 @@ def calendar_view(current_family):
         year = datetime.utcnow().year
         month = datetime.utcnow().month
 
-    # Create a calendar object (Monday as the first day of the week)
     cal = calendar.Calendar(firstweekday=0)
-    # Get a list of weeks, where each week is a list of date objects
     month_calendar = cal.monthdatescalendar(year, month)
 
-    # Get the first and last day of the month to query the database efficiently
-    first_day_of_month = date(year, month, 1)
-    # calendar.monthrange returns (weekday of first day, number of days in month)
-    _, num_days = calendar.monthrange(year, month)
-    last_day_of_month = date(year, month, num_days)
+    # Calculate the exact start and end of the visible calendar grid
+    view_start = month_calendar[0][0]  # e.g., Oct 28th (prev month)
+    view_end = month_calendar[-1][-1]  # e.g., Dec 6th (next month)
 
-    # Fetch all events for the family that fall within this month
-    month_events = (
-        Event.query.filter(
-            Event.family_id == current_family.id,
-            Event.date >= first_day_of_month,
-            Event.date <= last_day_of_month,
-        )
-        .order_by(Event.time)
-        .all()
-    )
+    # 2. Fetch Events
+    # We fetch ALL repeating events (because they might define a rule starting in 2023 that applies now)
+    # AND single events that happen in this view.
+    raw_events = Event.query.filter(
+        Event.family_id == current_family.id,
+        db.or_(
+            Event.recurrence_type != "none",  # All repeating events
+            db.and_(
+                Event.date >= view_start, Event.date <= view_end
+            ),  # Single events in range
+        ),
+    ).all()
 
-    # Process events into a dictionary for easy lookup in the template
-    # The key is the day number (e.g., 1, 15, 31)
     events_by_day = {}
-    for event in month_events:
-        day_num = event.date.day
-        if day_num not in events_by_day:
-            events_by_day[day_num] = []
-        events_by_day[day_num].append(event)
 
-    # Calculate dates for the "Previous" and "Next" month navigation links
+    # 3. The Expansion Engine
+    for event in raw_events:
+        event_instances = []
+
+        if event.recurrence_type == "none":
+            # It's a single event, just add it directly
+            event_instances.append(event.date)
+        else:
+            # It's a repeating event. Calculate the dates.
+
+            # Map string frequency to dateutil constants
+            freq_map = {
+                "daily": DAILY,
+                "weekly": WEEKLY,
+                "monthly": MONTHLY,
+                "yearly": YEARLY,
+            }
+
+            if event.recurrence_type in freq_map:
+                # Stop calculating either at the event's end date OR the end of the view
+                until_date = view_end
+                if event.recurrence_end_date and event.recurrence_end_date < view_end:
+                    until_date = event.recurrence_end_date
+
+                # Generate the dates
+                # Note: We convert date to datetime for rrule, then back to date
+                generated_dates = rrule(
+                    freq_map[event.recurrence_type],
+                    dtstart=datetime.combine(event.date, datetime.min.time()),
+                    interval=event.recurrence_interval,
+                    until=datetime.combine(until_date, datetime.min.time()),
+                )
+
+                # Filter strictly for the view range
+                for dt in generated_dates:
+                    d = dt.date()
+                    if d >= view_start and d <= view_end:
+                        event_instances.append(d)
+
+        # 4. Create "Virtual" Event Objects for the Template
+        for instance_date in event_instances:
+            day_num = instance_date.day
+            # We must use the specific date object from the calendar grid to match keys correctly
+            # But since your template uses day numbers (1, 2, 3) for the current month,
+            # we need to be careful with previous/next month days.
+
+            # For this specific logic, we are grouping by DATE OBJECT if possible,
+            # or we stick to your day number logic if it's strictly within the current month.
+
+            # SIMPLIFICATION: Let's group by the actual date string "YYYY-MM-DD"
+            # You will need to update calendar.html to match this slightly.
+
+            # For now, let's keep your integer logic for the current month:
+            if instance_date.month == month:
+                if day_num not in events_by_day:
+                    events_by_day[day_num] = []
+
+                # We create a dictionary copy so we can change the date for this specific instance
+                # while keeping the original event data (title, color)
+                virtual_event = {
+                    "id": event.id,
+                    "title": event.title,
+                    "time": event.time,
+                    "end_time": event.end_time,
+                    "color": event.color,
+                    "is_all_day": event.is_all_day,
+                    "author": event.author,
+                    "author_id": event.author_id,
+                    # Add formatted time for the badge
+                    "display_time": event.time.strftime("%H:%M") if event.time else "",
+                }
+                # If there is an end time, append it
+                if event.end_time:
+                    virtual_event[
+                        "display_time"
+                    ] += f" - {event.end_time.strftime('%H:%M')}"
+                events_by_day[day_num].append(virtual_event)
+
+    # ... sort events by time ...
+    for day_num in events_by_day:
+        events_by_day[day_num].sort(key=lambda x: x["display_time"])
+
+    # ... (Rest of your navigation logic: prev_month_date, next_month_date) ...
     current_date = date(year, month, 1)
+    _, num_days = calendar.monthrange(year, month)
     prev_month_date = current_date - timedelta(days=1)
     next_month_date = current_date + timedelta(days=num_days)
 
@@ -964,57 +1057,59 @@ def calendar_view(current_family):
 @login_required
 @family_required
 def add_event(current_family):
-
+    # ... Get basic fields ...
     title = request.form.get("title")
     date_str = request.form.get("date")
     time_str = request.form.get("time")
-    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
-    if title and date_str and time_str:
-        date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-        time_obj = datetime.strptime(time_str, "%H:%M").time()
+    # ... Get new fields ...
+    is_all_day = request.form.get("is_all_day") == "on"
+    color = request.form.get("color", "#0d6efd")
 
-        # Create event tied to the family and the author
+    recurrence_type = request.form.get("recurrence_type", "none")
+    recurrence_interval = int(request.form.get("recurrence_interval", 1))
+    recurrence_end_str = request.form.get("recurrence_end_date")
+
+    if title and date_str:
+        base_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        time_obj = None
+        if not is_all_day and time_str:
+            time_obj = datetime.strptime(time_str, "%H:%M").time()
+
+        recurrence_end = None
+        if recurrence_end_str:
+            recurrence_end = datetime.strptime(recurrence_end_str, "%Y-%m-%d").date()
+
         new_event = Event(
             title=title,
-            date=date_obj,
+            date=base_date,
             time=time_obj,
+            is_all_day=is_all_day,
+            color=color,
+            recurrence_type=recurrence_type,
+            recurrence_interval=recurrence_interval,
+            recurrence_end_date=recurrence_end,
             family_id=current_family.id,
             author_id=current_user.id,
         )
+
         db.session.add(new_event)
         db.session.commit()
 
-        event_data = {
-            "id": new_event.id,
-            "title": new_event.title,
-            "date": new_event.date.strftime("%Y-%m-%d"),
-            "time": new_event.time.strftime("%H:%M"),
-            "formatted_date": new_event.date.strftime("%a, %b %d"),
-            "formatted_time": new_event.time.strftime("%H:%M"),
-            "author": {
-                "username": new_event.author.username,
-                "id": new_event.author.id,
-            },
-            "raw_timestamp": new_event.created_at.isoformat(),
-        }
-        socketio.emit(
-            "event_added",
-            {"event": event_data},
-            room=f"family_room_{current_family.id}",
-        )
+        # --- CORRECT INDENTATION: Line up exactly with db.session.commit ---
 
-        # In the add_event route, after the existing socketio.emit("event_added",...)
+        socketio.emit("refresh_calendar", {}, room=f"family_room_{current_family.id}")
+
         socketio.emit(
             "new_activity",
-            {"feature": "calendar", "timestamp": new_event.created_at.isoformat()},
+            {"feature": "calendar", "timestamp": datetime.utcnow().isoformat()},
             room=f"family_room_{current_family.id}",
         )
 
-        if is_ajax:
-            return jsonify({"success": True, "event": event_data})
+        return jsonify({"success": True})
 
-    return redirect(url_for("calendar"))
+    # This return is outside the 'if' block (for when validation fails)
+    return jsonify({"success": False}), 400
 
 
 @app.route("/delete_event", methods=["POST"])
@@ -2252,6 +2347,54 @@ def handle_save_meal(data):
 def page_not_found(e):
     # note that we set the 404 status code explicitly
     return render_template("404.html"), 404
+
+
+@app.route("/db_fix_calendar_v2")
+@login_required
+@family_required
+def db_fix_calendar_v2(current_family):
+    if current_family.owner_id != current_user.id:
+        return "Unauthorized", 403
+    try:
+        with db.engine.connect() as conn:
+            conn.execute(
+                text("ALTER TABLE event ADD COLUMN IF NOT EXISTS end_time TIME")
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS is_all_day BOOLEAN DEFAULT FALSE"
+                )
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'general'"
+                )
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS color VARCHAR(20) DEFAULT '#0d6efd'"
+                )
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS recurrence_type VARCHAR(20) DEFAULT 'none'"
+                )
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS recurrence_interval INTEGER DEFAULT 1"
+                )
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS recurrence_end_date DATE"
+                )
+            )
+            conn.execute(text("ALTER TABLE event ALTER COLUMN time DROP NOT NULL"))
+            conn.commit()
+        return "Calendar V2 Database Updated!"
+    except Exception as e:
+        return f"Error: {e}"
 
 
 if __name__ == "__main__":

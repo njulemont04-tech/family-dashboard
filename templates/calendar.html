@@ -2,10 +2,10 @@
 endblock %} {% block content %}
 
 <!-- ================================================================== -->
-<!-- START: RESPONSIVE CALENDAR HEADER (No changes here)              -->
+<!-- START: RESPONSIVE CALENDAR HEADER (Unchanged)                      -->
 <!-- ================================================================== -->
 
-<!-- 1. Mobile Header: Displays the "Calendar" title and a back button -->
+<!-- 1. Mobile Header -->
 <div class="feature-header d-flex d-md-none align-items-center mb-4">
   <a href="{{ url_for('home') }}" class="feature-header-back-button">
     <i class="bi bi-arrow-left"></i>
@@ -13,7 +13,7 @@ endblock %} {% block content %}
   <h1 class="feature-header-title h2 mb-0">{{ _('Calendar') }}</h1>
 </div>
 
-<!-- 2. Desktop Header: Displays ONLY the month/year and navigation controls -->
+<!-- 2. Desktop Header -->
 <div class="d-none d-md-flex justify-content-between align-items-center mb-4">
   <h1 class="h2 mb-0">{{ current_date.strftime('%B %Y') }}</h1>
   <div class="btn-group">
@@ -35,7 +35,7 @@ endblock %} {% block content %}
   </div>
 </div>
 
-<!-- 3. Mobile Sub-Header: Displays the month/year and navigation below the main title -->
+<!-- 3. Mobile Sub-Header -->
 <div class="d-flex d-md-none justify-content-between align-items-center mb-4">
   <h2 class="h4 mb-0">{{ current_date.strftime('%B %Y') }}</h2>
   <div class="btn-group">
@@ -85,34 +85,83 @@ endblock %} {% block content %}
         <tr>
           {% for day_date in week %} {% set is_today = (day_date == today) %} {%
           set is_current_month = (day_date.month == current_date.month) %}
+
+          <!-- We move the logic slightly to make VS Code happier -->
           <td
             class="calendar-day {% if not is_current_month %}other-month{% endif %} {% if is_today %}today{% endif %}"
+            data-date="{{ day_date.strftime('%Y-%m-%d') }}"
+            {#
+            Only
+            add
+            the
+            Modal
+            Trigger
+            attributes
+            if
+            it
+            is
+            the
+            current
+            month
+            #}
+            {%
+            if
+            is_current_month
+            %}
             data-bs-toggle="modal"
             data-bs-target="#addEventModal"
-            data-date="{{ day_date.strftime('%Y-%m-%d') }}"
+            style="cursor: pointer"
+            {%
+            endif
+            %}
           >
             <div class="day-number">{{ day_date.day }}</div>
+
             <div class="events-container">
-              {% for event in events_by_day.get(day_date.day, []) %} {# This
-              check is crucial for days like '1' which can appear from prev/next
-              month #} {% if event.date == day_date %}
+              {% if is_current_month %} {% for event in
+              events_by_day.get(day_date.day, []) %}
+
               <div
-                class="event-badge"
-                id="event-{{ event.id }}"
+                class="event-badge text-truncate event-instance-{{ event.id }}"
+                style="background-color: {{ event.color }}; cursor: pointer;"
                 data-bs-toggle="modal"
                 data-bs-target="#viewEventModal"
                 data-event-id="{{ event.id }}"
                 data-event-title="{{ event.title }}"
-                data-event-time="{{ event.time.strftime('%H:%M') }}"
                 data-event-author="{{ event.author.username }}"
                 data-event-author-id="{{ event.author_id }}"
+                data-event-color="{{ event.color }}"
+                {#
+                Handle
+                Time
+                Display
+                #}
+                {%
+                if
+                event.is_all_day
+                %}
+                data-event-time-display="{{ _('All Day') }}"
+                {%
+                else
+                %}
+                data-event-time-display="{{ event.display_time }}"
+                {%
+                endif
+                %}
               >
-                <span class="event-time"
-                  >{{ event.time.strftime('%H:%M') }}</span
+                {% if event.is_all_day %}
+                <small class="fw-bold me-1" style="font-size: 0.7em"
+                  >All Day</small
                 >
-                {{ event.title }}
+                {% else %}
+                <!-- We grab the first 5 chars (HH:MM) just for the badge view -->
+                <span class="event-time me-1"
+                  >{{ event.display_time[:5] }}</span
+                >
+                {% endif %} {{ event.title }}
               </div>
-              {% endif %} {% endfor %}
+
+              {% endfor %} {% endif %}
             </div>
           </td>
           {% endfor %}
@@ -141,9 +190,10 @@ endblock %} {% block content %}
 <!-- ================================================================== -->
 
 <!-- ================================================================== -->
-<!-- START: MODALS & FORMS (Unchanged, used by both views)            -->
+<!-- START: MODALS & FORMS                                            -->
 <!-- ================================================================== -->
-<!-- Add Event Modal -->
+
+<!-- 1. Add Event Modal (COMPLETELY REDESIGNED) -->
 <div
   class="modal fade"
   id="addEventModal"
@@ -171,10 +221,12 @@ endblock %} {% block content %}
             aria-label="Close"
           ></button>
         </div>
-        <div class="modal-body">
-          <!-- The date is now set by JavaScript, so this input is hidden -->
-          <input type="hidden" id="event-date-input" name="date" value="" />
 
+        <div class="modal-body">
+          <!-- Hidden Date Input (Populated by JS when clicking a cell) -->
+          <input type="hidden" id="event-date-input" name="date" required />
+
+          <!-- Title -->
           <div class="mb-3">
             <label for="event-title" class="form-label"
               >{{ _('Event Title') }}</label
@@ -185,37 +237,198 @@ endblock %} {% block content %}
               id="event-title"
               name="title"
               required
+              placeholder="{{ _('e.g., Dentist, Soccer, Birthday') }}"
             />
           </div>
-          <div class="mb-3">
-            <label for="event-hour" class="form-label">{{ _('Time') }}</label>
-            <div class="input-group">
-              <select class="form-select" id="event-hour" aria-label="Hour">
-                {% for i in range(24) %}
-                <option value="{{ '%02d'|format(i) }}">
-                  {{ '%02d'|format(i) }}
-                </option>
-                {% endfor %}
-              </select>
-              <span class="input-group-text">:</span>
-              <select class="form-select" id="event-minute" aria-label="Minute">
-                {% for i in range(0, 60, 5) %} {# 5 minute increments #}
-                <option value="{{ '%02d'|format(i) }}">
-                  {{ '%02d'|format(i) }}
-                </option>
-                {% endfor %}
-              </select>
+
+          <!-- Time & All Day Toggle -->
+          <div class="row mb-3 align-items-end">
+            <div class="col-12 mb-2">
+              <div class="form-check form-switch">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="is_all_day"
+                  name="is_all_day"
+                />
+                <label class="form-check-label" for="is_all_day"
+                  >{{ _('All Day Event') }}</label
+                >
+              </div>
             </div>
-            <!-- This hidden input will hold the combined HH:MM value for the form -->
-            <input
-              type="hidden"
-              id="event-time-hidden"
-              name="time"
-              value="00:00"
-              required
-            />
+
+            <!-- Time Inputs (Hidden if All Day is checked) -->
+            <div id="time-inputs-row" class="row g-2">
+              <div class="col-6">
+                <label class="form-label small text-muted"
+                  >{{ _('Start') }}</label
+                >
+                <input
+                  type="time"
+                  class="form-control"
+                  id="event-time"
+                  name="time"
+                />
+              </div>
+              <div class="col-6">
+                <label class="form-label small text-muted"
+                  >{{ _('End (Optional)') }}</label
+                >
+                <input
+                  type="time"
+                  class="form-control"
+                  id="event-end-time"
+                  name="end_time"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Color Selection -->
+          <div class="mb-3">
+            <label class="form-label">{{ _('Color Code') }}</label>
+            <div class="d-flex gap-2 justify-content-start">
+              <!-- Blue (Work/General) -->
+              <input
+                type="radio"
+                class="btn-check"
+                name="color"
+                id="c_blue"
+                value="#0d6efd"
+                checked
+              />
+              <label
+                class="btn btn-outline-light border-0 rounded-circle p-0"
+                for="c_blue"
+                style="width: 32px; height: 32px; background-color: #0d6efd"
+                title="{{ _('General') }}"
+              ></label>
+
+              <!-- Green (Social/Family) -->
+              <input
+                type="radio"
+                class="btn-check"
+                name="color"
+                id="c_green"
+                value="#198754"
+              />
+              <label
+                class="btn btn-outline-light border-0 rounded-circle p-0"
+                for="c_green"
+                style="width: 32px; height: 32px; background-color: #198754"
+                title="{{ _('Social') }}"
+              ></label>
+
+              <!-- Red (Important/Health) -->
+              <input
+                type="radio"
+                class="btn-check"
+                name="color"
+                id="c_red"
+                value="#dc3545"
+              />
+              <label
+                class="btn btn-outline-light border-0 rounded-circle p-0"
+                for="c_red"
+                style="width: 32px; height: 32px; background-color: #dc3545"
+                title="{{ _('Important') }}"
+              ></label>
+
+              <!-- Yellow (School) -->
+              <input
+                type="radio"
+                class="btn-check"
+                name="color"
+                id="c_yellow"
+                value="#ffc107"
+              />
+              <label
+                class="btn btn-outline-light border-0 rounded-circle p-0"
+                for="c_yellow"
+                style="width: 32px; height: 32px; background-color: #ffc107"
+                title="{{ _('School') }}"
+              ></label>
+
+              <!-- Purple (Activities) -->
+              <input
+                type="radio"
+                class="btn-check"
+                name="color"
+                id="c_purple"
+                value="#6f42c1"
+              />
+              <label
+                class="btn btn-outline-light border-0 rounded-circle p-0"
+                for="c_purple"
+                style="width: 32px; height: 32px; background-color: #6f42c1"
+                title="{{ _('Activity') }}"
+              ></label>
+            </div>
+          </div>
+
+          <hr class="text-muted" />
+
+          <!-- Recurrence Options -->
+          <div class="mb-3">
+            <label class="form-label">{{ _('Repeat') }}</label>
+            <div class="row g-2">
+              <div class="col-12">
+                <select
+                  class="form-select"
+                  name="recurrence_type"
+                  id="recurrence_type"
+                >
+                  <option value="none" selected>
+                    {{ _('Does not repeat') }}
+                  </option>
+                  <option value="daily">{{ _('Daily') }}</option>
+                  <option value="weekly">{{ _('Weekly') }}</option>
+                  <option value="monthly">{{ _('Monthly') }}</option>
+                  <option value="yearly">{{ _('Yearly') }}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Expanded Recurrence Options (Hidden by default) -->
+            <div
+              class="mt-3 d-none p-3 bg-light rounded"
+              id="recurrence_options_panel"
+            >
+              <div class="row g-2 align-items-center mb-2">
+                <div class="col-auto">
+                  <span class="small">{{ _('Every') }}</span>
+                </div>
+                <div class="col">
+                  <input
+                    type="number"
+                    class="form-control form-control-sm"
+                    name="recurrence_interval"
+                    value="1"
+                    min="1"
+                  />
+                </div>
+                <div class="col-auto">
+                  <span class="small" id="recurrence_unit_label"
+                    >{{ _('weeks') }}</span
+                  >
+                </div>
+              </div>
+              <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                  <span class="small">{{ _('Until') }}</span>
+                </div>
+                <div class="col">
+                  <input
+                    type="date"
+                    class="form-control form-control-sm"
+                    name="recurrence_end_date"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
         <div class="modal-footer">
           <button
             type="button"
@@ -225,7 +438,7 @@ endblock %} {% block content %}
             {{ _('Cancel') }}
           </button>
           <button type="submit" class="btn btn-primary">
-            {{ _('Add Event') }}
+            {{ _('Save Event') }}
           </button>
         </div>
       </form>
@@ -233,7 +446,7 @@ endblock %} {% block content %}
   </div>
 </div>
 
-<!-- View/Delete Event Modal -->
+<!-- 2. View/Delete Event Modal (UPDATED) -->
 <div
   class="modal fade"
   id="viewEventModal"
@@ -254,23 +467,32 @@ endblock %} {% block content %}
           aria-label="Close"
         ></button>
       </div>
+
       <div class="modal-body">
-        <h4 id="view-event-title" class="mb-3"></h4>
-        <p class="lead">
-          <i class="bi bi-clock-fill me-2"></i>
+        <!-- Colored Header Line -->
+        <div
+          id="view-event-color-strip"
+          class="rounded mb-3"
+          style="height: 6px; width: 100%; background-color: #0d6efd"
+        ></div>
+
+        <h4 id="view-event-title" class="mb-3 fw-bold"></h4>
+
+        <p class="lead mb-2">
+          <i class="bi bi-clock me-2 text-muted"></i>
           <span id="view-event-time"></span>
         </p>
+
         <p class="text-muted" style="font-size: 0.9em">
-          <i class="bi bi-person-fill me-2"></i>
+          <i class="bi bi-person me-2"></i>
           {{ _('Added by') }} <strong id="view-event-author"></strong>
         </p>
       </div>
+
       <div class="modal-footer justify-content-between">
         <!-- Actions for the event's author -->
         <div id="event-author-actions">
-          <button type="button" id="edit-event-btn" class="btn btn-primary">
-            <i class="bi bi-pencil-square me-2"></i>{{ _('Edit') }}
-          </button>
+          <!-- Note: Editing instances of recurring events is complex, so for now we only support Delete for simplicity in V2 -->
           <button
             type="button"
             id="delete-event-btn"
@@ -287,7 +509,7 @@ endblock %} {% block content %}
   </div>
 </div>
 
-<!-- Hidden form for deletion (re-uses existing confirm-delete logic) -->
+<!-- Hidden form for deletion (re-uses existing logic) -->
 <form
   action="{{ url_for('delete_event') }}"
   method="POST"
@@ -295,6 +517,7 @@ endblock %} {% block content %}
 >
   <input type="hidden" name="event_id" id="delete-event-id-input" value="" />
 </form>
+
 <!-- ================================================================== -->
 <!-- END: MODALS & FORMS                                              -->
 <!-- ================================================================== -->
