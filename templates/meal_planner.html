@@ -122,6 +122,19 @@ feature_header(_('Meal Planner')) %}
               rows="5"
               placeholder="{{ _('Optional: Add a recipe link or preparation notes here.') }}"
             ></textarea>
+
+            <!-- === ADD THIS NEW BLOCK BELOW THE TEXTAREA === -->
+            <div
+              id="meal-notes-links-preview"
+              class="mt-2 p-3 bg-light rounded border d-none"
+            >
+              <small class="text-muted d-block mb-1 fw-bold"
+                >{{ _('Clickable Links:') }}</small
+              >
+              <!-- Links will be injected here by JavaScript -->
+              <div id="meal-notes-content" style="word-break: break-word"></div>
+            </div>
+            <!-- ============================================ -->
           </div>
         </div>
         <div class="modal-footer justify-content-between">
@@ -168,5 +181,11 @@ feature_header(_('Meal Planner')) %}
 {% endblock %} {% block page_scripts %}
 <script>
   window.mealPlanData = {{ meal_plan_json|safe }};
+
+  // --- ADD THIS NEW BLOCK ---
+  window.translations = {
+      add_meal: "{{ _('Add a meal') }}" // Jinja will translate this before sending to browser
+  };
+  // --------------------------
 </script>
 {% endblock %}

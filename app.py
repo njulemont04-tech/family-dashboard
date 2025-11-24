@@ -35,6 +35,8 @@ from flask_bcrypt import Bcrypt
 from functools import wraps
 from flask_babel import Babel, gettext as _
 
+from sqlalchemy import text
+
 # --- START: NEW WEBSOCKET IMPORTS ---
 from flask_socketio import SocketIO, emit, join_room
 
@@ -278,11 +280,14 @@ class Chore(db.Model):
     name = db.Column(db.String(150), nullable=False)
     description = db.Column(db.String(300), nullable=True)
     points = db.Column(db.Integer, nullable=False, default=5)
-    # This determines how the rotation works. For now, we'll focus on 'Weekly'.
-    frequency = db.Column(db.String(50), nullable=False, default="Weekly")
+
+    # --- NEW COLUMNS ---
+    frequency_days = db.Column(db.Integer, nullable=False, default=7)
+    last_generated_date = db.Column(db.Date, nullable=True)
+    # -------------------
+
     family_id = db.Column(db.Integer, db.ForeignKey("family.id"), nullable=False)
 
-    # Relationship to its assignments
     assignments = db.relationship(
         "ChoreAssignment", backref="chore", lazy=True, cascade="all, delete-orphan"
     )
@@ -356,6 +361,23 @@ def family_required(f):
 
 # ADD THIS NEW FUNCTION TO APP.PY
 
+# --- ADD THIS TO app.py ---
+
+
+def set_target_blank(attrs, new=False):
+    """Helper to force links to open in a new tab"""
+    attrs[(None, "target")] = "_blank"
+    attrs[(None, "rel")] = "noopener noreferrer"
+    return attrs
+
+
+@app.template_filter("linkify")
+def linkify_filter(text):
+    """Jinja filter to make links clickable in templates"""
+    if not text:
+        return ""
+    return bleach.linkify(text, callbacks=[set_target_blank])
+
 
 @app.context_processor
 def inject_today_date():
@@ -364,6 +386,47 @@ def inject_today_date():
 
     today = date.today()
     return dict(current_day=today.day)
+
+
+@app.context_processor
+def inject_permissions():
+    """
+    Injects a global 'is_admin' variable into all templates.
+    It respects the 'view_as_member' toggle for testing purposes.
+    """
+    is_admin = False
+
+    # 1. Check if user is logged in and a family is selected
+    if current_user.is_authenticated:
+        current_family_id = session.get("current_family_id")
+        if current_family_id:
+            # We query the family here (or get it if you have it cached)
+            # Note: Family.query.get might be slightly heavy to do on every request,
+            # but for a family app it's totally fine.
+            family = Family.query.get(current_family_id)
+
+            if family and family.owner_id == current_user.id:
+                # User IS the owner...
+                # BUT check if they turned on "View as Member" mode
+                if not session.get("view_as_member"):
+                    is_admin = True
+
+    return dict(is_admin=is_admin)
+
+
+@app.route("/toggle_view_mode")
+@login_required
+def toggle_view_mode():
+    """Toggles the session flag to pretend to be a regular member."""
+    if session.get("view_as_member"):
+        session.pop("view_as_member")
+        flash("Exited Member View. You are Admin again.", "info")
+    else:
+        session["view_as_member"] = True
+        flash("Viewing as a regular Member.", "success")
+
+    # Redirect back to the page they were just on
+    return redirect(request.referrer or url_for("dashboard"))
 
 
 # --- START: ADD THIS NEW FUNCTION ---
@@ -1066,7 +1129,10 @@ def meal_planner(current_family):
             "id": meal.id,
             "description": meal.description,
             "notes": meal.notes or "",
-            "notes_html": bleach.linkify(meal.notes or ""),
+            # ADD THIS LINE:
+            "notes_html": bleach.linkify(
+                meal.notes or "", callbacks=[set_target_blank]
+            ),
         }
         for meal in family_meals
     }
@@ -1808,16 +1874,13 @@ def chores(current_family, start_date_str=None):
 @login_required
 @family_required
 def add_chore(current_family):
-    # ... (this function remains unchanged) ...
     if current_family.owner_id != current_user.id:
         return jsonify({"success": False, "message": "Permission denied."}), 403
 
     chore_name = request.form.get("chore_name")
-    chore_points_str = request.form.get("chore_points")
-    try:
-        chore_points = int(chore_points_str)
-    except (ValueError, TypeError):
-        chore_points = 5
+    chore_points = int(request.form.get("chore_points", 5))
+    # NEW: Get frequency
+    frequency_days = int(request.form.get("frequency_days", 7))
 
     if not chore_name:
         return (
@@ -1825,14 +1888,19 @@ def add_chore(current_family):
             400,
         )
 
-    new_chore = Chore(name=chore_name, points=chore_points, family_id=current_family.id)
+    new_chore = Chore(
+        name=chore_name,
+        points=chore_points,
+        family_id=current_family.id,
+        frequency_days=frequency_days,  # Save it
+    )
     db.session.add(new_chore)
     db.session.commit()
 
     return jsonify(
         {
             "success": True,
-            "message": "Chore added successfully!",
+            "message": "Chore added!",
             "chore": {
                 "id": new_chore.id,
                 "name": new_chore.name,
@@ -1868,84 +1936,91 @@ def delete_chore(current_family):
 @login_required
 @family_required
 def generate_chores(current_family):
-    # Security check
+    # Use your permission check
     if current_family.owner_id != current_user.id:
         return jsonify({"success": False, "message": "Permission denied."}), 403
 
-    # 1. Calculate the start of the current week (Monday)
     today = date.today()
-    # weekday() returns 0 for Monday, 6 for Sunday.
-    # Subtract current weekday from today to get back to Monday.
     start_of_week = today - timedelta(days=today.weekday())
 
-    # 2. Check if assignments already exist for this week
+    # Check if ANY assignments exist for THIS specific week
     existing = ChoreAssignment.query.filter_by(
         family_id=current_family.id, week_of=start_of_week
     ).first()
+
     if existing:
         return (
             jsonify(
                 {
                     "success": False,
-                    "message": f"Chores have already been generated for the week of {start_of_week.strftime('%b %d')}.",
+                    "message": "Chores have already been generated for this week.",
                 }
             ),
             400,
         )
 
-    # 3. Fetch necessary data
     chores = Chore.query.filter_by(family_id=current_family.id).all()
     members = current_family.members
 
     if not chores:
-        return (
-            jsonify(
-                {"success": False, "message": "Chore bank is empty. Add chores first."}
-            ),
-            400,
-        )
-    if not members:
-        # Should be impossible as owner is a member, but good to check
-        return jsonify({"success": False, "message": "No members in family."}), 400
+        return jsonify({"success": False, "message": "Chore bank is empty."}), 400
 
-    # 4. The Distribution Algorithm (Simple Round-Robin)
-    # We loop through chores and assign to members sequentially.
     new_assignments = []
-    num_members = len(members)
+    # Use ISO week number to ensure rotation changes every week
+    current_week_number = start_of_week.isocalendar()[1]
+    assignment_index = 0
 
-    for i, chore in enumerate(chores):
-        # Use modulo operator % to cycle through members
-        assigned_member = members[i % num_members]
+    for chore in chores:
+        # --- LOGIC: IS THIS CHORE DUE? ---
+        is_due = False
 
-        assignment = ChoreAssignment(
-            week_of=start_of_week,
-            chore_id=chore.id,
-            user_id=assigned_member.id,
-            family_id=current_family.id,
-        )
-        new_assignments.append(assignment)
+        if chore.last_generated_date is None:
+            # Never been done? It's due.
+            is_due = True
+        else:
+            # Calculate days passed since last generation
+            days_since = (today - chore.last_generated_date).days
+            # If enough time has passed (give 3 days leeway for "Weekly" to trigger on different weekdays)
+            if days_since >= (chore.frequency_days - 3):
+                is_due = True
 
-    # 5. Save to Database
-    try:
-        db.session.add_all(new_assignments)
-        db.session.commit()
-        count = len(new_assignments)
-        # (Optional) In the future, we could emit a socket event here to notify everyone
+        if is_due:
+            # Assign to a member using rotation logic
+            num_members = len(members)
+            member_index = (assignment_index + current_week_number) % num_members
+            assigned_member = members[member_index]
+
+            assignment = ChoreAssignment(
+                week_of=start_of_week,
+                chore_id=chore.id,
+                user_id=assigned_member.id,
+                family_id=current_family.id,
+            )
+            new_assignments.append(assignment)
+
+            # Mark this chore as generated TODAY
+            chore.last_generated_date = start_of_week
+
+            # Move to the next member for the next chore
+            assignment_index += 1
+
+    if not new_assignments:
         return jsonify(
             {
                 "success": True,
-                "message": f"Successfully assigned {count} chores for the week of {start_of_week.strftime('%b %d')}!",
+                "message": "No chores are due this week based on frequency settings.",
             }
         )
-    except Exception as e:
-        db.session.rollback()
-        print(f"Error generating chores: {e}")
-        return (
-            jsonify(
-                {"success": False, "message": "Database error while generating chores."}
-            ),
-            500,
-        )
+
+    db.session.add_all(new_assignments)
+    db.session.commit()
+
+    return jsonify(
+        {
+            "success": True,
+            "message": f"Generated {len(new_assignments)} chores due this week!",
+        }
+    )
 
 
 @app.route("/list/<int:list_id>")
@@ -2155,7 +2230,10 @@ def handle_save_meal(data):
         "id": meal_to_process.id,
         "description": meal_to_process.description,
         "notes": meal_to_process.notes or "",
-        "notes_html": bleach.linkify(meal_to_process.notes or ""),
+        # UPDATE THIS LINE BELOW:
+        "notes_html": bleach.linkify(
+            meal_to_process.notes or "", callbacks=[set_target_blank]
+        ),
         "day": meal_to_process.day,
     }
 
@@ -2176,6 +2254,52 @@ def handle_save_meal(data):
 def page_not_found(e):
     # note that we set the 404 status code explicitly
     return render_template("404.html"), 404
+
+
+@app.route("/db_fix_chores")
+@login_required
+def db_fix_chores():
+    # Security: Only allow the Admin (you) to run this
+    if current_user.id != current_user.owned_families[0].owner_id:
+        return "Unauthorized", 403
+
+    try:
+        with db.engine.connect() as conn:
+            # Add the new columns safely. If they exist, it does nothing.
+            conn.execute(
+                text(
+                    "ALTER TABLE chore ADD COLUMN IF NOT EXISTS frequency_days INTEGER DEFAULT 7"
+                )
+            )
+            conn.execute(
+                text(
+                    "ALTER TABLE chore ADD COLUMN IF NOT EXISTS last_generated_date DATE"
+                )
+            )
+            conn.commit()
+        return "Database updated successfully! You can now use custom frequencies."
+    except Exception as e:
+        return f"Error: {e}"
+
+
+@app.route("/db_check_columns")
+def db_check_columns():
+    from sqlalchemy import inspect
+
+    # Inspect the database engine to find the table structure
+    inspector = inspect(db.engine)
+
+    # Get all columns for the 'chore' table
+    columns = [col["name"] for col in inspector.get_columns("chore")]
+
+    # Return them as a JSON list
+    return jsonify(
+        {
+            "table": "chore",
+            "columns": columns,
+            "success": "frequency_days" in columns and "last_generated_date" in columns,
+        }
+    )
 
 
 if __name__ == "__main__":

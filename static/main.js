@@ -115,6 +115,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   // END: ADD THIS NEW CODE BLOCK
 
+  // Handle Custom Frequency Dropdown
+  const freqSelect = document.getElementById("frequency_days");
+  const customInput = document.getElementById("custom_freq_input");
+
+  if (freqSelect && customInput) {
+    freqSelect.addEventListener("change", function () {
+      if (this.value === "custom") {
+        customInput.classList.remove("d-none");
+        customInput.required = true;
+        this.removeAttribute("name");
+        customInput.setAttribute("name", "frequency_days");
+      } else {
+        customInput.classList.add("d-none");
+        customInput.required = false;
+        this.setAttribute("name", "frequency_days");
+        customInput.removeAttribute("name");
+      }
+    });
+  }
+
   const notificationManager = {
     _getStorageKey: (feature, familyId) =>
       `lastSeen_${feature}_family_${familyId}`,
@@ -422,13 +442,17 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     if (cardBody) {
       const mainCard = cardBody.closest(".meal-day-card");
-      mainCard.classList.remove("meal-planned"); // Changed from bg-primary-subtle
+      mainCard.classList.remove("meal-planned");
 
       cardBody.dataset.mealId = "";
+
+      // --- THE FIX IS HERE TOO ---
+      const addMealText = window.translations?.add_meal || "Add a meal";
+
       cardBody.innerHTML = `
         <div class="meal-empty-state">
           <i class="bi bi-plus-circle display-6 text-muted"></i>
-          <p class="text-muted mt-2 mb-0">Add a meal</p>
+          <p class="text-muted mt-2 mb-0">${addMealText}</p>
         </div>
       `;
     }
@@ -984,25 +1008,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const handleDeleteMealOptimistic = (form, data) => {
     if (data.success) {
-      if (currentCardBody) {
-        const day = currentCardBody.dataset.day;
-        const mainCard = currentCardBody.closest(".meal-day-card");
+      const deletedId = form.querySelector('input[name="meal_id"]').value;
+
+      // 1. Close modal
+      const modalElement = document.getElementById("mealModal");
+      const modalInstance = bootstrap.Modal.getInstance(modalElement);
+      if (modalInstance) modalInstance.hide();
+
+      // 2. Reset form
+      document.getElementById("meal-form").reset();
+      const previewContainer = document.getElementById(
+        "meal-notes-links-preview"
+      );
+      if (previewContainer) previewContainer.classList.add("d-none");
+
+      // 3. Update UI Card
+      const cardBody = document.querySelector(
+        `.meal-card-body[data-meal-id="${deletedId}"]`
+      );
+      if (cardBody) {
+        const mainCard = cardBody.closest(".meal-day-card");
         mainCard.classList.remove("meal-planned");
+        cardBody.dataset.mealId = "";
 
-        currentCardBody.dataset.mealId = "";
-        currentCardBody.innerHTML = `
-                    <div class="meal-empty-state">
-                      <i class="bi bi-plus-circle display-6 text-muted"></i>
-                      <p class="text-muted mt-2 mb-0">Add a meal</p>
-                    </div>
-                `;
+        // --- THE FIX IS HERE ---
+        // We use the variable we defined in the HTML, falling back to English if missing
+        const addMealText = window.translations?.add_meal || "Add a meal";
 
-        // Also remove the entry from our global data object
-        if (window.mealPlanData[day]) {
-          delete window.mealPlanData[day];
-        }
+        cardBody.innerHTML = `
+            <div class="meal-empty-state">
+              <i class="bi bi-plus-circle display-6 text-muted"></i>
+              <p class="text-muted mt-2 mb-0">${addMealText}</p>
+            </div>
+        `;
       }
-      mealModal.hide();
+
+      // 4. Clean Data
+      if (window.mealPlanData) {
+        Object.keys(window.mealPlanData).forEach((key) => {
+          const meal = window.mealPlanData[key];
+          if (meal && meal.id == deletedId) {
+            window.mealPlanData[key] = null;
+          }
+        });
+      }
+
+      showToast("Meal removed successfully.", "success");
     } else {
       showToast(data.message || "Failed to remove meal.", "danger");
     }
@@ -1314,6 +1365,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const notes = meal.notes || "";
       const notes_html = meal.notes_html || "";
 
+      // --- ADD THESE LINES ---
+      const notesHtml = meal.notes_html || "";
+      const previewContainer = document.getElementById(
+        "meal-notes-links-preview"
+      );
+      const previewContent = document.getElementById("meal-notes-content");
+
+      // Check if there are actual links or text to show
+      if (notesHtml && notesHtml.trim() !== "") {
+        previewContent.innerHTML = notesHtml;
+        previewContainer.classList.remove("d-none");
+      } else {
+        previewContainer.classList.add("d-none");
+      }
+      // -----------------------
+
       // Set modal title and form inputs
       mealModalLabel.textContent = mealId
         ? `Edit ${day}'s Dinner`
@@ -1359,13 +1426,15 @@ document.addEventListener("DOMContentLoaded", () => {
           day: day,
           description: description,
           notes: notes,
-          week_of: week_of, // <-- ADD THIS PROPERTY
+          week_of: week_of,
         },
         (meal_data) => {
           if (meal_data) {
             // Finalize UI with correct data from server
             updateMealCardUI(currentCardBody, meal_data);
+
             // Update the global data object so the modal has fresh info next time
+            // This ensures the 'notes_html' is saved to our local cache
             window.mealPlanData[day] = meal_data;
           } else {
             showToast("Failed to save meal. Please refresh.", "danger");

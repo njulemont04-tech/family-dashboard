@@ -14,7 +14,7 @@ endblock %} {% block content %}
 <!-- 2. Desktop Header: Displays "Chores Dashboard" title and Generate button for admin -->
 <div class="d-none d-md-flex justify-content-between align-items-center mb-4">
   <h1 class="h2 mb-0">{{ _('Chores Dashboard') }}</h1>
-  {% if current_family.owner_id == current_user.id %}
+  {% if is_admin %}
   <!-- We use the new shared class 'generate-chores-btn' -->
   <button
     class="btn btn-success generate-chores-btn"
@@ -26,7 +26,7 @@ endblock %} {% block content %}
 </div>
 
 <!-- 3. Mobile Admin Action: Displays ONLY the centered Generate button for admin -->
-{% if current_family.owner_id == current_user.id %}
+{% if is_admin %}
 <div class="d-grid gap-2 d-md-none mb-4">
   <!-- We use the new shared class 'generate-chores-btn' -->
   <button
@@ -44,7 +44,7 @@ endblock %} {% block content %}
 <!-- ================================================================== -->
 <!-- START: CORRECTED IF/ELSE LOGIC FOR ADMIN VS MEMBER VIEW          -->
 <!-- ================================================================== -->
-{% if current_family.owner_id == current_user.id %}
+{% if is_admin %}
 
 <!-- ###################################################### -->
 <!-- #################### ADMIN VIEW ######################## -->
@@ -245,18 +245,56 @@ endblock %} {% block content %}
                   required
                 />
               </div>
+              <!-- NEW CODE TO PASTE -->
+
+              <!-- 1. Improved Points Selection -->
               <div class="mb-3">
                 <label for="chorePoints" class="form-label"
-                  >{{ _('Points') }}</label
+                  >{{ _('Points Value') }}</label
                 >
+                <select
+                  class="form-select"
+                  name="chore_points"
+                  id="chorePoints"
+                >
+                  <option value="1">1 {{ _('Point (Quick)') }}</option>
+                  <option value="3">3 {{ _('Points (Easy)') }}</option>
+                  <option value="5" selected>
+                    5 {{ _('Points (Medium)') }}
+                  </option>
+                  <option value="10">10 {{ _('Points (Hard)') }}</option>
+                  <option value="20">20 {{ _('Points (Big Project)') }}</option>
+                </select>
+              </div>
+
+              <!-- 2. New Frequency Selection -->
+              <div class="mb-3">
+                <label for="frequency_days" class="form-label"
+                  >{{ _('How often?') }}</label
+                >
+                <select
+                  class="form-select"
+                  name="frequency_days"
+                  id="frequency_days"
+                >
+                  <option value="7" selected>
+                    {{ _('Weekly (Every 7 days)') }}
+                  </option>
+                  <option value="14">
+                    {{ _('Bi-Weekly (Every 14 days)') }}
+                  </option>
+                  <option value="30">{{ _('Monthly (Every 30 days)') }}</option>
+                  <option value="1">{{ _('Daily (Every day)') }}</option>
+                  <option value="custom">{{ _('Custom...') }}</option>
+                </select>
+
+                <!-- Hidden Input for Custom Days -->
                 <input
                   type="number"
-                  class="form-control"
-                  id="chorePoints"
-                  name="chore_points"
-                  value="5"
+                  class="form-control mt-2 d-none"
+                  id="custom_freq_input"
+                  placeholder="{{ _('Enter number of days') }}"
                   min="1"
-                  required
                 />
               </div>
               <button type="submit" class="btn btn-primary w-100">

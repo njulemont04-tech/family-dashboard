@@ -2,7 +2,7 @@
   <div class="d-flex w-100 justify-content-between">
     <h5 class="mb-1">{{ entry.title }}</h5>
     <div>
-      {% if current_user.id == current_family.owner_id %}
+      {% if is_admin %}
       <button
         class="btn btn-sm btn-outline-secondary me-2"
         data-bs-toggle="modal"

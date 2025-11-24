@@ -56,21 +56,29 @@
     {%
     if
     session.current_family_id
-    %}data-family-id="{{ session.current_family_id }}"
+    %}
+    data-family-id="{{ session.current_family_id }}"
     {%
     endif
     %}
     {%
     if
     current_user.is_authenticated
-    %}data-user-id="{{ current_user.id }}"
+    %}
+    data-user-id="{{ current_user.id }}"
     {%
     endif
     %}
     {%
     if
     family_owner_id
-    %}data-family-owner-id="{{ family_owner_id }}"
+    %}
+    data-family-owner-id="{{ family_owner_id if is_admin else 0 }}"
+    {%
+    elif
+    current_family
+    %}
+    data-family-owner-id="{{ current_family.owner_id if is_admin else 0 }}"
     {%
     endif
     %}
@@ -200,6 +208,16 @@
               >{{ _('Profile') }}</a
             >
           </li>
+          <!-- Inside the user dropdown menu -->
+          <li>
+            <a class="dropdown-item" href="{{ url_for('toggle_view_mode') }}">
+              {% if session.get('view_as_member') %}
+              <i class="bi bi-eye-slash-fill me-2"></i> {{ _('Exit Member View')
+              }} {% else %} <i class="bi bi-eye-fill me-2"></i> {{ _('View as
+              Member') }} {% endif %}
+            </a>
+          </li>
+          <li><hr class="dropdown-divider" /></li>
           <li>
             <a
               class="dropdown-item {% if request.endpoint == 'settings' %}active{% endif %}"
@@ -301,6 +319,18 @@
 
         {% block content %}{% endblock %}
       </main>
+      {% if session.get('view_as_member') %}
+      <div
+        class="alert alert-warning text-center m-0 rounded-0 py-1 small"
+        role="alert"
+      >
+        <i class="bi bi-eye-fill me-1"></i>
+        {{ _('Viewing as Member') }} &mdash;
+        <a href="{{ url_for('toggle_view_mode') }}" class="alert-link"
+          >{{ _('Switch back to Admin') }}</a
+        >
+      </div>
+      {% endif %}
     </div>
 
     <!-- =============================================================== -->

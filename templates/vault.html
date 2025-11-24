@@ -3,7 +3,7 @@
 }}{% endblock %} {% block content %} {# 2. Call the feature_header macro. The
 "Add New Entry" button goes inside the 'call' block. #} {% call
 feature_header(_('Family Vault'), show_actions_on_mobile=False) %} {% if
-current_user.id == current_family.owner_id %}
+is_admin %}
 <button
   class="btn btn-primary"
   data-bs-toggle="modal"
@@ -74,7 +74,7 @@ preserved. #} {% with messages = get_flashed_messages(with_categories=true) %}
 </div>
 
 <!-- 4. Add the new Floating Action Button for mobile (Admin only) -->
-{% if current_user.id == current_family.owner_id %}
+{% if is_admin %}
 <a
   href="#"
   class="btn btn-primary rounded-circle fab d-md-none"
@@ -94,7 +94,7 @@ preserved. #} {% with messages = get_flashed_messages(with_categories=true) %}
 </div>
 
 <!-- Add Entry Modal (Unchanged) -->
-{% if current_user.id == current_family.owner_id %}
+{% if is_admin %}
 <div
   class="modal fade"
   id="addEntryModal"
