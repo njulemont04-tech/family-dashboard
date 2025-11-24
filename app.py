@@ -2349,54 +2349,6 @@ def page_not_found(e):
     return render_template("404.html"), 404
 
 
-@app.route("/db_fix_calendar_v2")
-@login_required
-@family_required
-def db_fix_calendar_v2(current_family):
-    if current_family.owner_id != current_user.id:
-        return "Unauthorized", 403
-    try:
-        with db.engine.connect() as conn:
-            conn.execute(
-                text("ALTER TABLE event ADD COLUMN IF NOT EXISTS end_time TIME")
-            )
-            conn.execute(
-                text(
-                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS is_all_day BOOLEAN DEFAULT FALSE"
-                )
-            )
-            conn.execute(
-                text(
-                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS category VARCHAR(50) DEFAULT 'general'"
-                )
-            )
-            conn.execute(
-                text(
-                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS color VARCHAR(20) DEFAULT '#0d6efd'"
-                )
-            )
-            conn.execute(
-                text(
-                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS recurrence_type VARCHAR(20) DEFAULT 'none'"
-                )
-            )
-            conn.execute(
-                text(
-                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS recurrence_interval INTEGER DEFAULT 1"
-                )
-            )
-            conn.execute(
-                text(
-                    "ALTER TABLE event ADD COLUMN IF NOT EXISTS recurrence_end_date DATE"
-                )
-            )
-            conn.execute(text("ALTER TABLE event ALTER COLUMN time DROP NOT NULL"))
-            conn.commit()
-        return "Calendar V2 Database Updated!"
-    except Exception as e:
-        return f"Error: {e}"
-
-
 if __name__ == "__main__":
     # This block is for LOCAL development only.
     socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
